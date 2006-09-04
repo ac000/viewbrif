@@ -12,24 +12,60 @@ int line_no = 1;
 int line_pos = 0;
 
 
-void
+static void cb_quit(GtkMenuItem *menuitem, gpointer user_data);
+static void cb_new_window(GtkMenuItem *menuitem, gpointer user_data);
+static void process_line(char *fline, GtkWidget *text_view, 
+							int line_array[][2]);
+static void do_main_record(char *fline, GtkWidget *text_view);
+static void do_purchasing_card(char *fline, GtkWidget *text_view);
+static void do_purchasing_card_item(char *fline, GtkWidget *text_view);
+static void read_file(GtkWidget *text_view);
+
+
+
+static void
 cb_quit(GtkMenuItem *menuitem, gpointer user_data)
 {
-	exit(0);
+	gtk_main_quit();
 }
 
-void
+static void
 cb_new_window(GtkMenuItem *menuitem, gpointer user_data)
 {
 }
 
 static void
-do_main_record(char *fline, GtkWidget *text_view)
+process_line(char *fline, GtkWidget *text_view, int line_array[][2])
 {
-	char fstatus[20], hline[35];
+	char fstatus[20];
         char *field;
 	int i = 0, fstart = 0, flen = 0;
-	
+
+	GtkTextBuffer *buffer;
+
+
+	while (strncmp(fline + fstart, "\r\n", 2) != 0) {
+                fstart = line_array[i][0];
+                flen = line_array[i][1];
+
+                sprintf(fstatus, "(%d, %d) \tF%d\t= ", fstart + 1, flen, i + 1);                buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text_view));
+                gtk_text_buffer_insert_at_cursor(buffer, fstatus, -1);
+                field = (char *) malloc(sizeof(char) * (flen  + 2));
+                memset(field, 0, sizeof(char) * (flen  + 2));
+                strncpy(field, fline + fstart, flen);
+                strcat(field, "\n");
+                buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text_view));
+                gtk_text_buffer_insert_at_cursor(buffer, field, -1);
+                free(field);
+                line_pos += flen;
+                i++;
+        }
+
+}
+
+static void
+do_main_record(char *fline, GtkWidget *text_view)
+{
 	int mrl[31][2] = { {0, 1}, {1, 1}, {2, 1}, {3, 1}, {4, 1},
                         {5, 8}, {13, 6}, {19, 15}, {34, 8}, {42, 1},
                         {43, 19}, {62, 4}, {66, 4}, {70, 2}, {72, 12},
@@ -38,29 +74,16 @@ do_main_record(char *fline, GtkWidget *text_view)
                         {190, 11}, {201, 1}, {202, 8}, {210, 4}, {214, 84},
                         {298, 2} };
 
+	char hline[35];
+
 	GtkTextBuffer *buffer;
 
 
 	sprintf(hline, "Line no: %d, Main Record\n", line_no++);
 	buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text_view));
 	gtk_text_buffer_insert_at_cursor(buffer, hline, -1);
-	while (strncmp(fline + fstart, "\r\n", 2) != 0) {
-		fstart = mrl[i][0];
-		flen = mrl[i][1];
-
-		sprintf(fstatus, "(%d, %d) \tF%d\t= ", fstart + 1, flen, i + 1);
-		buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text_view));
-		gtk_text_buffer_insert_at_cursor(buffer, fstatus, -1);
-		field = (char *) malloc(sizeof(char) * (flen  + 2));
-		memset(field, 0, sizeof(char) * (flen  + 2));
-		strncpy(field, fline + fstart, flen);
-		strcat(field, "\n");
-		buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text_view));
-		gtk_text_buffer_insert_at_cursor(buffer, field, -1);
-		free(field);
-		line_pos += flen;
-		i++;
-	}
+	
+	process_line(fline, text_view, mrl);
 }
 
 static void
@@ -72,9 +95,7 @@ do_purchasing_card(char *fline, GtkWidget *text_view)
                         {101, 1}, {102, 20}, {122, 12}, {134, 15}, {149, 15},
                         {164, 20}, {184, 12}, {196, 102}, {298, 2} };
 	
-	char fstatus[20], hline[35];
-        char *field;
-        int i = 0, fstart = 0, flen = 0;
+	char hline[35];
 	
 	GtkTextBuffer *buffer;
 
@@ -82,23 +103,8 @@ do_purchasing_card(char *fline, GtkWidget *text_view)
 	sprintf(hline, "Line no: %d, Purchasing Card\n", line_no++);
         buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text_view));
 	gtk_text_buffer_insert_at_cursor(buffer, hline, -1);
- 	while (strncmp(fline + fstart, "\r\n", 2) != 0) {
- 		fstart = pcl[i][0];
- 		flen = pcl[i][1];
-
- 		sprintf(fstatus, "(%d, %d) \tF%d\t= ", fstart + 1, flen, i + 1);
-		buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text_view));
-		gtk_text_buffer_insert_at_cursor(buffer, fstatus, -1);
-		field = (char *) malloc(sizeof(char) * (flen  + 2));
-		memset(field, 0, sizeof(char) * (flen  + 2));
-		strncpy(field, fline + fstart, flen);
-		strcat(field, "\n");
-		buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text_view));
-		gtk_text_buffer_insert_at_cursor(buffer, field, -1);
-		free(field);
-		line_pos += flen;
-		i++;
-	}
+	
+	process_line(fline, text_view, pcl);
 }
 
 static void
@@ -110,9 +116,7 @@ do_purchasing_card_item(char *fline, GtkWidget *text_view)
                         {139, 12}, {151, 1}, {152, 12}, {164, 1}, {165, 133},
                         {298, 2} };
 
-	char fstatus[20], hline[35];
-        char *field;
-        int i = 0, fstart = 0, flen = 0;
+	char hline[35];
 
         GtkTextBuffer *buffer;
 
@@ -120,23 +124,8 @@ do_purchasing_card_item(char *fline, GtkWidget *text_view)
 	sprintf(hline, "Line no: %d, Purchasing Card Item\n", line_no++);
 	buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text_view));
 	gtk_text_buffer_insert_at_cursor(buffer, hline, -1);
-	while (strncmp(fline + fstart, "\r\n", 2) != 0) {
-		fstart = pcil[i][0];
-		flen = pcil[i][1];
 
-		sprintf(fstatus, "(%d, %d) \tF%d\t= ", fstart + 1, flen, i + 1);
-		buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text_view));
-		gtk_text_buffer_insert_at_cursor(buffer, fstatus, -1);
-		field = (char *) malloc(sizeof(char) * (flen  + 2));
-		memset(field, 0, sizeof(char) * (flen  + 2));
-		strncpy(field, fline + fstart, flen);
-		strcat(field, "\n");
-		buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text_view));
-		gtk_text_buffer_insert_at_cursor(buffer, field, -1);
-		free(field);
-		line_pos += flen;
-		i++;
-	}
+	process_line(fline, text_view, pcil);
 }
 
 static void
@@ -162,12 +151,6 @@ read_file(GtkWidget *text_view)
         }
 
         fclose(fp);
-}
-
-static void 
-destroy(GtkWidget *widget, gpointer data)
-{
-	gtk_main_quit();
 }
 
 
@@ -196,7 +179,7 @@ main(int argc, char *argv[])
 	/* Main window */
 	window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 	g_signal_connect(G_OBJECT(window), "destroy",
-                                                G_CALLBACK(destroy), NULL);
+                                                G_CALLBACK(cb_quit), NULL);
   	gtk_window_set_title(GTK_WINDOW(window), "ViewBRIF");	
 	gtk_container_set_border_width(GTK_CONTAINER(window), 0);
     	gtk_widget_set_size_request(window, 500, 800);
