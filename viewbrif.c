@@ -11,16 +11,18 @@
 int line_no = 1;
 int line_pos = 0;
 
+GtkWidget *text_view;
+
 
 static void cb_quit(GtkMenuItem *menuitem, gpointer user_data);
 static void cb_new_window(GtkMenuItem *menuitem, gpointer user_data);
 static void cb_file_selector();
-static void process_line(char *fline, GtkWidget *text_view, 
-							int line_array[][2]);
-static void do_main_record(char *fline, GtkWidget *text_view);
-static void do_purchasing_card(char *fline, GtkWidget *text_view);
-static void do_purchasing_card_item(char *fline, GtkWidget *text_view);
-static void read_file(GtkWidget *text_view);
+static void cb_file_selected(GtkWidget *w, GtkFileSelection *fs);
+static void process_line(char *fline, int line_array[][2]);
+static void do_main_record(char *fline);
+static void do_purchasing_card(char *fline);
+static void do_purchasing_card_item(char *fline);
+static void read_file(char *fn);
 
 
 static void
@@ -36,6 +38,8 @@ cb_file_selected(GtkWidget *w, GtkFileSelection *fs)
 	strcpy(fpath, gtk_file_selection_get_filename(GTK_FILE_SELECTION(fs)));
 
 	printf("Selected file path = %s\n", fpath);
+	
+	read_file(fpath);
 	
 	free(fpath);
 }
@@ -74,7 +78,7 @@ cb_new_window(GtkMenuItem *menuitem, gpointer user_data)
 }
 
 static void
-process_line(char *fline, GtkWidget *text_view, int line_array[][2])
+process_line(char *fline, int line_array[][2])
 {
 	char fstatus[20];
         char *field;
@@ -99,11 +103,10 @@ process_line(char *fline, GtkWidget *text_view, int line_array[][2])
                 line_pos += flen;
                 i++;
         }
-
 }
 
 static void
-do_main_record(char *fline, GtkWidget *text_view)
+do_main_record(char *fline)
 {
 	int mrl[31][2] = { {0, 1}, {1, 1}, {2, 1}, {3, 1}, {4, 1},
                         {5, 8}, {13, 6}, {19, 15}, {34, 8}, {42, 1},
@@ -122,11 +125,11 @@ do_main_record(char *fline, GtkWidget *text_view)
 	buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text_view));
 	gtk_text_buffer_insert_at_cursor(buffer, hline, -1);
 	
-	process_line(fline, text_view, mrl);
+	process_line(fline, mrl);
 }
 
 static void
-do_purchasing_card(char *fline, GtkWidget *text_view)
+do_purchasing_card(char *fline)
 {
 	int pcl[24][2] = { {0, 1}, {1, 2}, {2, 1}, {3, 1}, {4, 1},
                         {5, 12}, {17, 13}, {30, 12}, {42, 8}, {50, 12},
@@ -143,11 +146,11 @@ do_purchasing_card(char *fline, GtkWidget *text_view)
         buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text_view));
 	gtk_text_buffer_insert_at_cursor(buffer, hline, -1);
 	
-	process_line(fline, text_view, pcl);
+	process_line(fline, pcl);
 }
 
 static void
-do_purchasing_card_item(char *fline, GtkWidget *text_view)
+do_purchasing_card_item(char *fline)
 {
 	int pcil[21][2] = { {0, 1}, {1, 1}, {2, 1}, {3, 1}, {4, 1},
                         {5, 3}, {8, 12}, {20, 12}, {32, 15}, {47, 40},
@@ -164,25 +167,25 @@ do_purchasing_card_item(char *fline, GtkWidget *text_view)
 	buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text_view));
 	gtk_text_buffer_insert_at_cursor(buffer, hline, -1);
 
-	process_line(fline, text_view, pcil);
+	process_line(fline, pcil);
 }
 
 static void
-read_file(GtkWidget *text_view)
+read_file(char *fn)
 {
 	char fline[301];
 	FILE *fp;
 	
 
-	fp = fopen("data/brifn30f.req", "r");
+	fp = fopen(fn, "r");
 
 	while (fgets(fline, 301, fp) != NULL) {
 		if (strncmp(fline + 1, "A", 1) == 0) {
-                	do_main_record(fline, text_view);	
+                	do_main_record(fline);	
 		} else if (strncmp(fline + 2, "P", 1) == 0) {
-			do_purchasing_card(fline, text_view);	
+			do_purchasing_card(fline);	
 		} else if (strncmp(fline + 2, "I", 1) == 0) {
-			do_purchasing_card_item(fline, text_view);
+			do_purchasing_card_item(fline);
 		}
 	
 		printf("Line length = %d\n", line_pos);
@@ -198,7 +201,6 @@ main(int argc, char *argv[])
 {
 	static GtkWidget *window;
 	GtkWidget *scrolled_window;
-	GtkWidget *text_view;
 	GtkWidget *vbox;
 	GtkWidget *menubar;
 	GtkWidget *filemenu;
@@ -298,12 +300,12 @@ main(int argc, char *argv[])
 						cb_quit), NULL);
 	g_signal_connect((gpointer) filemenu_new_window, "activate", G_CALLBACK(
                                                 cb_new_window), NULL);
-	g_signal_connect((gpointer) filemenu_open, "activate", G_CALLBACK(                                                	cb_file_selector), NULL);
+	g_signal_connect((gpointer) filemenu_open, "activate", G_CALLBACK(      				cb_file_selector), (gpointer) text_view);
 
 
 	gtk_widget_show(window);
 
-	read_file(text_view);	
+	/*read_file(fn)*/;	
 
 
 	gtk_main();
