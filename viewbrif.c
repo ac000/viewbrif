@@ -14,6 +14,7 @@ int line_pos = 0;
 
 static void cb_quit(GtkMenuItem *menuitem, gpointer user_data);
 static void cb_new_window(GtkMenuItem *menuitem, gpointer user_data);
+static void cb_file_selector();
 static void process_line(char *fline, GtkWidget *text_view, 
 							int line_array[][2]);
 static void do_main_record(char *fline, GtkWidget *text_view);
@@ -22,6 +23,44 @@ static void do_purchasing_card_item(char *fline, GtkWidget *text_view);
 static void read_file(GtkWidget *text_view);
 
 
+static void
+cb_file_selected(GtkWidget *w, GtkFileSelection *fs)
+{
+	char *fpath;
+	int len = 0;
+	
+
+	len = strlen(gtk_file_selection_get_filename(GTK_FILE_SELECTION(fs)));
+	fpath = (char *) malloc(sizeof(char) * (len + 1));
+	memset(fpath, 0, sizeof(char) * (len + 1));
+	strcpy(fpath, gtk_file_selection_get_filename(GTK_FILE_SELECTION(fs)));
+
+	printf("Selected file path = %s\n", fpath);
+	
+	free(fpath);
+}
+
+static void
+cb_file_selector()
+{
+	GtkWidget *filew;
+
+
+	/* Create a new file selection widget */
+	filew = gtk_file_selection_new("File selection");
+	
+	/* Connect the ok_button to file_ok_sel function */
+	g_signal_connect (G_OBJECT(GTK_FILE_SELECTION(filew)->ok_button),
+			"clicked", G_CALLBACK(cb_file_selected), 
+							(gpointer) filew);
+    
+	/* Connect the cancel_button to destroy the widget */
+	g_signal_connect_swapped (G_OBJECT(GTK_FILE_SELECTION(
+				filew)->cancel_button), "clicked", G_CALLBACK(
+					gtk_widget_destroy), G_OBJECT(filew));
+    	
+	gtk_widget_show(filew);
+}
 
 static void
 cb_quit(GtkMenuItem *menuitem, gpointer user_data)
@@ -205,7 +244,7 @@ main(int argc, char *argv[])
 	/* Create the new menu item */
   	filemenu_new_window = gtk_image_menu_item_new_from_stock("gtk-new", 
 								accel_group);
-  	gtk_widget_show(filemenu_new_window);
+  	/*gtk_widget_show(filemenu_new_window);*/
   	gtk_container_add(GTK_CONTAINER(filemenu_menu), filemenu_new_window);
 
 	/* Create the open menu item */
@@ -259,7 +298,7 @@ main(int argc, char *argv[])
 						cb_quit), NULL);
 	g_signal_connect((gpointer) filemenu_new_window, "activate", G_CALLBACK(
                                                 cb_new_window), NULL);
-
+	g_signal_connect((gpointer) filemenu_open, "activate", G_CALLBACK(                                                	cb_file_selector), NULL);
 
 
 	gtk_widget_show(window);
