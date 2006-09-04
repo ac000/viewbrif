@@ -79,8 +79,65 @@ read_file(text_view)
 				lpos += flen;
 				i++;
                 	}
-        	}
-	        
+        	} else if (strncmp(fline + 2, "P", 1) == 0) {
+			sprintf(hline, "Line no: %d, Purchasing Card\n", ln++);
+                        buffer = gtk_text_view_get_buffer(
+                                                GTK_TEXT_VIEW(text_view));
+                        gtk_text_buffer_insert_at_cursor(buffer, hline, -1);
+                        while (strncmp(fline + fstart, "\r\n", 2) != 0) {
+                                fstart = pcl[i][0];
+                                flen = pcl[i][1];
+
+                                sprintf(fstatus, "(%d, %d) \tF%d\t= ",
+                                                fstart + 1, flen, i + 1);
+                                buffer = gtk_text_view_get_buffer(
+                                                GTK_TEXT_VIEW(text_view));
+                                gtk_text_buffer_insert_at_cursor(buffer,
+                                                                fstatus, -1);
+                                field = (char *) malloc(sizeof(char) *
+                                                                (flen  + 2));
+                                memset(field, 0, sizeof(char) * (flen  + 2));
+                                strncpy(field, fline + fstart, flen);
+                                strcat(field, "\n");
+                                buffer = gtk_text_view_get_buffer(
+                                                GTK_TEXT_VIEW(text_view));
+                                gtk_text_buffer_insert_at_cursor(buffer, field,
+                                                                        -1);
+                                free(field);
+                                lpos += flen;
+                                i++;
+                        }
+		} else if (strncmp(fline + 2, "I", 1) == 0) {
+                        sprintf(hline, "Line no: %d, Purchasing Card Item\n", 
+									ln++);
+                        buffer = gtk_text_view_get_buffer(
+                                                GTK_TEXT_VIEW(text_view));
+                        gtk_text_buffer_insert_at_cursor(buffer, hline, -1);
+                        while (strncmp(fline + fstart, "\r\n", 2) != 0) {
+                                fstart = pcil[i][0];
+                                flen = pcil[i][1];
+
+                                sprintf(fstatus, "(%d, %d) \tF%d\t= ",
+                                                fstart + 1, flen, i + 1);
+                                buffer = gtk_text_view_get_buffer(
+                                                GTK_TEXT_VIEW(text_view));
+                                gtk_text_buffer_insert_at_cursor(buffer,
+                                                                fstatus, -1);
+                                field = (char *) malloc(sizeof(char) *
+                                                                (flen  + 2));
+                                memset(field, 0, sizeof(char) * (flen  + 2));
+                                strncpy(field, fline + fstart, flen);
+                                strcat(field, "\n");
+                                buffer = gtk_text_view_get_buffer(
+                                                GTK_TEXT_VIEW(text_view));
+                                gtk_text_buffer_insert_at_cursor(buffer, field,
+                                                                        -1);
+                                free(field);
+                                lpos += flen;
+                                i++;
+                        }
+		}
+	
 		printf("Line length = %d\n", lpos);
 		lpos = i = fstart = flen = 0;
         }
