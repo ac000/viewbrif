@@ -41,7 +41,7 @@ cb_file_selected(GtkWidget *w, GtkFileSelection *fs)
 	
 	read_file(fpath);
 	
-	free(fpath);
+	free(fpath);	
 }
 
 static void
@@ -52,17 +52,30 @@ cb_file_selector()
 
 	/* Create a new file selection widget */
 	filew = gtk_file_selection_new("File selection");
-	
+
 	/* Connect the ok_button to file_ok_sel function */
-	g_signal_connect (G_OBJECT(GTK_FILE_SELECTION(filew)->ok_button),
+	g_signal_connect(G_OBJECT(GTK_FILE_SELECTION(filew)->ok_button),
 			"clicked", G_CALLBACK(cb_file_selected), 
 							(gpointer) filew);
     
 	/* Connect the cancel_button to destroy the widget */
-	g_signal_connect_swapped (G_OBJECT(GTK_FILE_SELECTION(
+	g_signal_connect_swapped(G_OBJECT(GTK_FILE_SELECTION(
 				filew)->cancel_button), "clicked", G_CALLBACK(
 					gtk_widget_destroy), G_OBJECT(filew));
     	
+	/* 
+	 * Ensure that the dialog box is destroyed when the user clicks a 
+	 * button. 
+	 */
+   
+	g_signal_connect_swapped(GTK_FILE_SELECTION(filew)->ok_button,
+				"clicked", G_CALLBACK(gtk_widget_destroy), 
+							filew);
+
+	g_signal_connect_swapped(GTK_FILE_SELECTION(
+				filew)->cancel_button, "clicked",
+				G_CALLBACK(gtk_widget_destroy), filew);
+	
 	gtk_widget_show(filew);
 }
 
