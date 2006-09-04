@@ -38,7 +38,7 @@ read_file(text_view)
 	GtkTextBuffer *buffer;
 
 
-	fp = fopen("brifn30f.req", "r");
+	fp = fopen("data/brifn30f.req", "r");
 
 	while (fgets(fline, 301, fp) != NULL) {
 		if (strncmp(fline + 1, "A", 1) == 0) {
