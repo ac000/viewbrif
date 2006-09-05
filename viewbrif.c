@@ -190,6 +190,10 @@ read_file(char *fn)
 	FILE *fp;
 	
 
+	line_no = 1;
+	line_pos = 0;
+	gtk_text_view_set_buffer(GTK_TEXT_VIEW(text_view), NULL);
+
 	fp = fopen(fn, "r");
 
 	while (fgets(fline, 301, fp) != NULL) {
