@@ -8,12 +8,17 @@
 #include <gtk/gtk.h>
 
 
+#define PAD_LEFT        0
+#define PAD_RIGHT       1
+#define PAD_CENT        2
+
 int line_no = 1;
 int line_pos = 0;
 
 GtkWidget *text_view;
 
 
+char * str_pad(char *str, int len, char *padchar, int just);
 static void cb_quit(GtkMenuItem *menuitem, gpointer user_data);
 static void cb_new_window(GtkMenuItem *menuitem, gpointer user_data);
 static void cb_file_selector();
@@ -24,6 +29,47 @@ static void do_purchasing_card(char *fline);
 static void do_purchasing_card_item(char *fline);
 static void read_file(char *fn);
 
+
+char *
+str_pad(char *str, int len, char *padchar, int just)
+{
+        char *newstr, *padstr;
+        int i, ppos;
+
+        newstr = (char *) malloc(sizeof(char) * len + 1);
+        memset(newstr, 0, sizeof(char) * len + 1);
+
+        if (just == PAD_LEFT || just == PAD_RIGHT) {
+                padstr = (char *) malloc(sizeof(char) * (len - strlen(str))
+                                                                        + 1);
+                memset(padstr, 0, sizeof(char) * (len - strlen(str)) + 1);
+
+                for (i = 0; i < (len - strlen(str)); i++)
+                        strcat(padstr, padchar);
+
+                if (just == PAD_LEFT)
+                        sprintf(newstr, "%s%s", padstr, str);
+                else if (just == PAD_RIGHT)
+                        sprintf(newstr, "%s%s", str, padstr);
+        } else if (just == PAD_CENT) {
+                padstr = (char *) malloc(sizeof(char) * len + 1);
+                memset(padstr, 0, sizeof(char) * len + 1);
+
+                for (i = 0; i < len; i++)
+                        strcat(padstr, padchar);
+
+                ppos = (len - strlen(str)) / 2;
+                strncpy(padstr + ppos, str, strlen(str));
+                strcpy(newstr, padstr);
+        }
+
+        /*printf("Original string = %s, Pad string = %s, Padded String = %s\n",
+                                                        str, padstr, newstr);*/
+
+        free(padstr);
+
+        return newstr;
+}
 
 static void
 cb_file_selected(GtkWidget *w, GtkFileSelection *fs)
@@ -93,7 +139,7 @@ cb_new_window(GtkMenuItem *menuitem, gpointer user_data)
 static void
 process_line(char *fline, int line_array[][2])
 {
-	char fstatus[20];
+	char fstatus[30], pos[11], fn[4];
         char *field;
 	int i = 0, fstart = 0, flen = 0;
 
@@ -103,8 +149,12 @@ process_line(char *fline, int line_array[][2])
 	while (strncmp(fline + fstart, "\r\n", 2) != 0) {
                 fstart = line_array[i][0];
                 flen = line_array[i][1];
-
-                sprintf(fstatus, "(%d, %d) \tF%d\t= ", fstart + 1, flen, i + 1);                buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text_view));
+		
+		sprintf(pos, "(%d, %d)", fstart + 1, flen);
+		sprintf(fn, "F%d", i + 1);
+                sprintf(fstatus, "%s%s = ", str_pad(pos, 15, " ", PAD_RIGHT), 
+						str_pad(fn, 7, " ", PAD_RIGHT));
+		buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text_view));
                 gtk_text_buffer_insert_at_cursor(buffer, fstatus, -1);
                 field = (char *) malloc(sizeof(char) * (flen  + 2));
                 memset(field, 0, sizeof(char) * (flen  + 2));
@@ -189,13 +239,24 @@ read_file(char *fn)
 	char fline[301];
 	FILE *fp;
 	
+	GtkTextBuffer *buffer;
 
+
+	/* Reset global counters and clear the text view */
 	line_no = 1;
 	line_pos = 0;
 	gtk_text_view_set_buffer(GTK_TEXT_VIEW(text_view), NULL);
 
 	fp = fopen(fn, "r");
 
+	/* Display file name at top of view */
+	buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text_view));
+        gtk_text_buffer_insert_at_cursor(buffer, "Displaying file: ", -1);
+	buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text_view));
+        gtk_text_buffer_insert_at_cursor(buffer, fn, -1);
+	buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text_view));
+        gtk_text_buffer_insert_at_cursor(buffer, "\n\n", -1);
+	
 	while (fgets(fline, 301, fp) != NULL) {
 		if (strncmp(fline + 1, "A", 1) == 0) {
                 	do_main_record(fline);	
@@ -240,7 +301,7 @@ main(int argc, char *argv[])
                                                 G_CALLBACK(cb_quit), NULL);
   	gtk_window_set_title(GTK_WINDOW(window), "ViewBRIF");	
 	gtk_container_set_border_width(GTK_CONTAINER(window), 0);
-    	gtk_widget_set_size_request(window, 500, 800);
+    	gtk_widget_set_size_request(window, 700, 800);
 
 	/* vbox to hold stuff */
 	vbox = gtk_vbox_new(FALSE, 0);
