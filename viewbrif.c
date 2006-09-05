@@ -16,9 +16,11 @@ int line_no = 1;
 int line_pos = 0;
 
 GtkWidget *text_view;
+GtkTextIter iter;
 
 
 char * str_pad(char *str, int len, char *padchar, int just);
+static void create_tags(GtkTextBuffer *buffer);
 static void cb_quit(GtkMenuItem *menuitem, gpointer user_data);
 static void cb_new_window(GtkMenuItem *menuitem, gpointer user_data);
 static void cb_file_selector();
@@ -30,8 +32,7 @@ static void do_purchasing_card_item(char *fline);
 static void read_file(char *fn);
 
 
-char *
-str_pad(char *str, int len, char *padchar, int just)
+char * str_pad(char *str, int len, char *padchar, int just)
 {
         char *newstr, *padstr;
         int i, ppos;
@@ -71,8 +72,22 @@ str_pad(char *str, int len, char *padchar, int just)
         return newstr;
 }
 
-static void
-cb_file_selected(GtkWidget *w, GtkFileSelection *fs)
+static void create_tags(GtkTextBuffer *buffer)
+{
+	gtk_text_buffer_create_tag(buffer, "bold", "weight", 
+						PANGO_WEIGHT_BOLD, NULL);
+
+	gtk_text_buffer_create_tag(buffer, "blue_foreground", "foreground", 
+								"blue", NULL);
+
+	gtk_text_buffer_create_tag(buffer, "green_foreground", "foreground",
+                                                                "green", NULL);
+	
+	gtk_text_buffer_create_tag(buffer, "red_foreground", "foreground",
+                                                                "red", NULL);
+}
+
+static void cb_file_selected(GtkWidget *w, GtkFileSelection *fs)
 {
 	char *fpath;
 	int len = 0;
@@ -90,8 +105,7 @@ cb_file_selected(GtkWidget *w, GtkFileSelection *fs)
 	free(fpath);	
 }
 
-static void
-cb_file_selector()
+static void cb_file_selector()
 {
 	GtkWidget *filew;
 
@@ -125,21 +139,18 @@ cb_file_selector()
 	gtk_widget_show(filew);
 }
 
-static void
-cb_quit(GtkMenuItem *menuitem, gpointer user_data)
+static void cb_quit(GtkMenuItem *menuitem, gpointer user_data)
 {
 	gtk_main_quit();
 }
 
-static void
-cb_new_window(GtkMenuItem *menuitem, gpointer user_data)
+static void cb_new_window(GtkMenuItem *menuitem, gpointer user_data)
 {
 }
 
-static void
-process_line(char *fline, int line_array[][2])
+static void process_line(char *fline, int line_array[][2])
 {
-	char fstatus[30], pos[11], fn[4];
+	char fstatus[10], pos[11], fn[4];
         char *field;
 	int i = 0, fstart = 0, flen = 0;
 
@@ -152,10 +163,16 @@ process_line(char *fline, int line_array[][2])
 		
 		sprintf(pos, "(%d, %d)", fstart + 1, flen);
 		sprintf(fn, "F%d", i + 1);
-                sprintf(fstatus, "%s%s = ", str_pad(pos, 15, " ", PAD_RIGHT), 
-						str_pad(fn, 7, " ", PAD_RIGHT));
+                sprintf(fstatus, "%s= ", str_pad(fn, 5, " ", PAD_RIGHT));
 		buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text_view));
-                gtk_text_buffer_insert_at_cursor(buffer, fstatus, -1);
+		gtk_text_buffer_get_end_iter(buffer, &iter);
+		gtk_text_buffer_insert_with_tags_by_name(buffer, &iter, 
+					str_pad(pos, 12, " ", PAD_RIGHT), -1,
+							"red_foreground", NULL);
+		
+		gtk_text_buffer_insert_with_tags_by_name(buffer, &iter, fstatus,
+						-1, "red_foreground", NULL);
+		
                 field = (char *) malloc(sizeof(char) * (flen  + 2));
                 memset(field, 0, sizeof(char) * (flen  + 2));
                 strncpy(field, fline + fstart, flen);
@@ -168,8 +185,7 @@ process_line(char *fline, int line_array[][2])
         }
 }
 
-static void
-do_main_record(char *fline)
+static void do_main_record(char *fline)
 {
 	int mrl[31][2] = { {0, 1}, {1, 1}, {2, 1}, {3, 1}, {4, 1},
                         {5, 8}, {13, 6}, {19, 15}, {34, 8}, {42, 1},
@@ -186,13 +202,14 @@ do_main_record(char *fline)
 
 	sprintf(hline, "Line no: %d, Main Record\n", line_no++);
 	buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text_view));
-	gtk_text_buffer_insert_at_cursor(buffer, hline, -1);
+	gtk_text_buffer_get_end_iter(buffer, &iter);
+	gtk_text_buffer_insert_with_tags_by_name(buffer, &iter, hline, -1,
+						"green_foreground", NULL);
 	
 	process_line(fline, mrl);
 }
 
-static void
-do_purchasing_card(char *fline)
+static void do_purchasing_card(char *fline)
 {
 	int pcl[24][2] = { {0, 1}, {1, 2}, {2, 1}, {3, 1}, {4, 1},
                         {5, 12}, {17, 13}, {30, 12}, {42, 8}, {50, 12},
@@ -207,13 +224,14 @@ do_purchasing_card(char *fline)
 
 	sprintf(hline, "Line no: %d, Purchasing Card\n", line_no++);
         buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text_view));
-	gtk_text_buffer_insert_at_cursor(buffer, hline, -1);
+	gtk_text_buffer_get_end_iter(buffer, &iter);
+        gtk_text_buffer_insert_with_tags_by_name(buffer, &iter, hline, -1,
+                                                "green_foreground", NULL);
 	
 	process_line(fline, pcl);
 }
 
-static void
-do_purchasing_card_item(char *fline)
+static void do_purchasing_card_item(char *fline)
 {
 	int pcil[21][2] = { {0, 1}, {1, 1}, {2, 1}, {3, 1}, {4, 1},
                         {5, 3}, {8, 12}, {20, 12}, {32, 15}, {47, 40},
@@ -228,20 +246,22 @@ do_purchasing_card_item(char *fline)
 
 	sprintf(hline, "Line no: %d, Purchasing Card Item\n", line_no++);
 	buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text_view));
-	gtk_text_buffer_insert_at_cursor(buffer, hline, -1);
+	gtk_text_buffer_get_end_iter(buffer, &iter);
+        gtk_text_buffer_insert_with_tags_by_name(buffer, &iter, hline, -1,
+                                                "green_foreground", NULL);
 
 	process_line(fline, pcil);
 }
 
-static void
-read_file(char *fn)
+static void read_file(char *fn)
 {
 	char fline[301];
 	FILE *fp;
 	
 	GtkTextBuffer *buffer;
+	GtkTextIter iter;
 
-
+	
 	/* Reset global counters and clear the text view */
 	line_no = 1;
 	line_pos = 0;
@@ -249,11 +269,17 @@ read_file(char *fn)
 
 	fp = fopen(fn, "r");
 
-	/* Display file name at top of view */
+	/* Pretty print filename */
 	buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text_view));
-        gtk_text_buffer_insert_at_cursor(buffer, "Displaying file: ", -1);
-	buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text_view));
-        gtk_text_buffer_insert_at_cursor(buffer, fn, -1);
+	gtk_text_buffer_get_iter_at_offset(buffer, &iter, 0);
+       
+	create_tags(buffer);
+	gtk_text_buffer_insert_with_tags_by_name(buffer, &iter, 
+					"Displaying file: ", -1, "bold", NULL);
+	/*buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text_view));*/
+        gtk_text_buffer_insert_with_tags_by_name(buffer, &iter, fn, -1, 
+						"blue_foreground", "bold",
+									NULL);
 	buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text_view));
         gtk_text_buffer_insert_at_cursor(buffer, "\n\n", -1);
 	
@@ -274,8 +300,7 @@ read_file(char *fn)
 }
 
 
-int 
-main(int argc, char *argv[])
+int main(int argc, char *argv[])
 {
 	static GtkWidget *window;
 	GtkWidget *scrolled_window;
@@ -288,6 +313,7 @@ main(int argc, char *argv[])
 	GtkWidget *filemenu_quit;
 	GtkWidget *separator_menu_item;
 	GtkAccelGroup *accel_group;
+	PangoFontDescription *font_desc;
 
 
 	gtk_init(&argc, &argv);
@@ -379,6 +405,12 @@ main(int argc, char *argv[])
 	g_signal_connect((gpointer) filemenu_new_window, "activate", G_CALLBACK(
                                                 cb_new_window), NULL);
 	g_signal_connect((gpointer) filemenu_open, "activate", G_CALLBACK(      				cb_file_selector), (gpointer) text_view);
+
+
+	/* Change default font throughout text_view */
+	font_desc = pango_font_description_from_string("Monospace");
+	gtk_widget_modify_font(text_view, font_desc);
+	pango_font_description_free(font_desc);	
 
 
 	gtk_widget_show(window);
