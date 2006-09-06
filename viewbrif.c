@@ -454,11 +454,14 @@ int main(int argc, char *argv[])
 
 	gtk_widget_show(window);
 
-	/*read_file(fn)*/;	
 
+	/* If we got a filename as an argument, open that up in the viewer. */
+	if (argc > 1)
+                read_file(argv[1]);
+	
 
 	gtk_main();
-
+	
 	return 0;
 }
 
