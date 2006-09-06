@@ -12,6 +12,7 @@
 #define PAD_RIGHT       1
 #define PAD_CENT        2
 
+
 int line_no = 1;
 int line_pos = 0;
 
@@ -19,7 +20,7 @@ GtkWidget *text_view;
 GtkTextIter iter;
 
 
-char * str_pad(char *str, int len, char *padchar, int just);
+static void str_pad(char *newstr, char *str, int len, char *padchar, int just);
 static void create_tags(GtkTextBuffer *buffer);
 static void cb_quit(GtkMenuItem *menuitem, gpointer user_data);
 static void cb_new_window(GtkMenuItem *menuitem, gpointer user_data);
@@ -33,13 +34,11 @@ static void do_purchasing_card_item(char *fline);
 static void read_file(char *fn);
 
 
-char * str_pad(char *str, int len, char *padchar, int just)
+static void str_pad(char *newstr, char *str, int len, char *padchar, int just)
 {
-        char *newstr, *padstr;
+        char *padstr;
         int i, ppos;
 
-        newstr = (char *) malloc(sizeof(char) * len + 1);
-        memset(newstr, 0, sizeof(char) * len + 1);
 
         if (just == PAD_LEFT || just == PAD_RIGHT) {
                 padstr = (char *) malloc(sizeof(char) * (len - strlen(str))
@@ -69,8 +68,6 @@ char * str_pad(char *str, int len, char *padchar, int just)
                                                         str, padstr, newstr);*/
 
         free(padstr);
-
-        return newstr;
 }
 
 static void create_tags(GtkTextBuffer *buffer)
@@ -82,10 +79,10 @@ static void create_tags(GtkTextBuffer *buffer)
 								"blue", NULL);
 
 	gtk_text_buffer_create_tag(buffer, "green_foreground", "foreground",
-                                                                "green", NULL);
+							"darkgreen", NULL);
 	
 	gtk_text_buffer_create_tag(buffer, "red_foreground", "foreground",
-                                                                "red", NULL);
+                                                               "darkred", NULL);
 }
 
 static void cb_file_selected(GtkWidget *w, GtkFileSelection *fs)
@@ -152,11 +149,14 @@ static void cb_new_window(GtkMenuItem *menuitem, gpointer user_data)
 static void process_line(char *fline, int line_array[][2], 
 							char *field_headers[])
 {
-	char fstatus[10], pos[11], fn[4];
-        char *field;
+	char pos[12], fnum[5], fname[31];
+        char *data;
 	int i = 0, fstart = 0, flen = 0;
 
 	GtkTextBuffer *buffer;
+
+	buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text_view));
+	gtk_text_buffer_get_end_iter(buffer, &iter);
 
 
 	while (strncmp(fline + fstart, "\r\n", 2) != 0) {
@@ -164,24 +164,29 @@ static void process_line(char *fline, int line_array[][2],
                 flen = line_array[i][1];
 		
 		sprintf(pos, "(%d, %d)", fstart + 1, flen);
-		sprintf(fn, "F%d", i + 1);
-                sprintf(fstatus, "%s= ", str_pad(fn, 5, " ", PAD_RIGHT));
-		buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text_view));
-		gtk_text_buffer_get_end_iter(buffer, &iter);
-		gtk_text_buffer_insert_with_tags_by_name(buffer, &iter, 
-					str_pad(pos, 12, " ", PAD_RIGHT), -1,
-							"red_foreground", NULL);
-		
-		gtk_text_buffer_insert_with_tags_by_name(buffer, &iter, fstatus,
+		sprintf(fnum, "F%d", i + 1);
+
+		/*printf("Field name = %s\n", field_headers[i]);*/
+                sprintf(fname, "[ %s", field_headers[i]);
+		str_pad(pos, pos, 11, " ", PAD_RIGHT);
+		str_pad(fnum, fnum, 4, " ", PAD_RIGHT);
+		str_pad(fname, fname, 30, " ", PAD_RIGHT);		
+
+		gtk_text_buffer_insert_with_tags_by_name(buffer, &iter, pos,
+                                                -1, "red_foreground", NULL);
+		gtk_text_buffer_insert_with_tags_by_name(buffer, &iter, fnum,
 						-1, "red_foreground", NULL);
+		gtk_text_buffer_insert_with_tags_by_name(buffer, &iter, fname,
+						-1, "blue_foreground", NULL);
+		gtk_text_buffer_insert_with_tags_by_name(buffer, &iter, "] ",
+                                                -1, "blue_foreground", NULL);
 		
-                field = (char *) malloc(sizeof(char) * (flen  + 2));
-                memset(field, 0, sizeof(char) * (flen  + 2));
-                strncpy(field, fline + fstart, flen);
-                strcat(field, "\n");
-                buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text_view));
-                gtk_text_buffer_insert_at_cursor(buffer, field, -1);
-                free(field);
+		data = (char *) malloc(sizeof(char) * (flen  + 2));
+                memset(data, '\0', sizeof(char) * (flen  + 2));
+                strncpy(data, fline + fstart, flen);
+                strcat(data, "\n");
+                gtk_text_buffer_insert(buffer, &iter, data, -1);
+                free(data);
                 line_pos += flen;
                 i++;
         }
@@ -193,11 +198,12 @@ static void do_main_record(char *fline)
                         "Cont/Aux Following", "Live/Test", "Transaction Date",
                         "Transaction Time", "Merchant ID", "Terminal ID",
                         "Capture Method", "PAN", "Expiry Date", "Start Date",
-                        "Amount", "Cash Back Amount", "Card Track 2",
-                        "Originators Trans Ref", "Currency Code", "Sore Code",
-                        "Auth Method", "User ID", "RESERVED",
-                        "Card Scheme Code", "Network Terminal No.",
-                        "Transaction Number", "Status", "Auth Code", "Error No",                        "Error/Auth Message", "CRLF" };
+			"Issue No.", "Amount", "Cash Back Amount", 
+			"Card Track 2", "Originators Trans Ref", 
+			"Currency Code", "Sort Code", "Auth Method", "User ID",
+			"RESERVED", "Card Scheme Code", "Network Terminal No.",
+			"Transaction Number", "Status", "Auth Code", 
+			"Error No.", "Error/Auth Message", "CRLF" };
 
 	int mrl[31][2] = { {0, 1}, {1, 1}, {2, 1}, {3, 1}, {4, 1},
                         {5, 8}, {13, 6}, {19, 15}, {34, 8}, {42, 1},
@@ -218,23 +224,24 @@ static void do_main_record(char *fline)
 	gtk_text_buffer_insert_with_tags_by_name(buffer, &iter, hline, -1,
 						"green_foreground", NULL);
 	
+	
 	process_line(fline, mrl, mrn);
 }
 
 static void do_purchasing_card(char *fline)
 {
 	char *pcln[] = { "Record Processed", "Record Type", "Aux Type",
-			"Coninuation", "Page No.", "VAT Transcation Amount",
-			"Customer VAT Reg No", "Supplier Order Ref", 
+			"Continuation", "Page No.", "VAT Transaction Amount",
+			"Customer VAT Reg No.", "Supplier Order Ref", 
 			"Order Date", "Discount Amount", "Freight Amount",
 			"Dest Post Code", "Ship From Post Code", 
 			"Dest Country Code", "Freight VAT Rate", 
 			"Transaction VAT Status", "Customer Ref", 
-			"Customer Account  No.", "Invoice No.", 
+			"Customer Account No.", "Invoice No.", 
 			"Original Invoice No.", "Cost Centre", 
 			"Total Items Amount", "Filler", "CRLF" };
 
-	int pcl[24][2] = { {0, 1}, {1, 2}, {2, 1}, {3, 1}, {4, 1},
+	int pcl[24][2] = { {0, 1}, {1, 1}, {2, 1}, {3, 1}, {4, 1},
                         {5, 12}, {17, 13}, {30, 12}, {42, 8}, {50, 12},
                         {62, 12}, {74, 10}, {84, 10}, {94, 3}, {97, 4},
                         {101, 1}, {102, 20}, {122, 12}, {134, 15}, {149, 15},
@@ -260,9 +267,9 @@ static void do_purchasing_card_item(char *fline)
 			"Continuation", "Page No.", "Item No.", "Unit Cost",
 			"Unit of Measure", "Commodity Code", "Item Description",
 			"Quantity", "VAT Rate", "Line Discount Amount", 
-			"Product Code", "Line VAT Amount", "VAT Rate Type",
-			"Original Line Total Amount", "Debit/Credit", "Filler",
-			"CRLF" };
+			"Product Code", "Line VAT Amount", "Line Total Amount",
+			"VAT Rate Type", "Original Line Total Amount", 
+			"Debit/Credit", "Filler", "CRLF" };
 
 	int pcil[21][2] = { {0, 1}, {1, 1}, {2, 1}, {3, 1}, {4, 1},
                         {5, 3}, {8, 12}, {20, 12}, {32, 15}, {47, 40},
@@ -302,24 +309,25 @@ static void read_file(char *fn)
 
 	/* Pretty print filename */
 	buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text_view));
-	gtk_text_buffer_get_iter_at_offset(buffer, &iter, 0);
+	gtk_text_buffer_get_start_iter(buffer, &iter);
        
 	create_tags(buffer);
 	gtk_text_buffer_insert_with_tags_by_name(buffer, &iter, 
 					"Displaying file: ", -1, "bold", NULL);
-	/*buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text_view));*/
         gtk_text_buffer_insert_with_tags_by_name(buffer, &iter, fn, -1, 
 						"blue_foreground", "bold",
 									NULL);
-	buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text_view));
-        gtk_text_buffer_insert_at_cursor(buffer, "\n\n", -1);
+        gtk_text_buffer_insert(buffer, &iter, "\n\n", -1);
 	
 	while (fgets(fline, 301, fp) != NULL) {
 		if (strncmp(fline + 1, "A", 1) == 0) {
+			printf("Doing main record line.\n");
                 	do_main_record(fline);	
 		} else if (strncmp(fline + 2, "P", 1) == 0) {
+			printf("Doing purchasing card line.\n");
 			do_purchasing_card(fline);	
 		} else if (strncmp(fline + 2, "I", 1) == 0) {
+			printf("Doing purchasing card item line.\n");
 			do_purchasing_card_item(fline);
 		}
 	
