@@ -34,6 +34,7 @@ GtkTextIter iter;
 
 static void str_pad(char *newstr, char *str, int len, char *padchar, int just);
 static void create_tags(GtkTextBuffer *buffer);
+static void cb_about_window();
 static void cb_quit(GtkMenuItem *menuitem, gpointer user_data);
 static void cb_new_window(GtkMenuItem *menuitem, gpointer user_data);
 static void cb_file_selector();
@@ -95,6 +96,24 @@ static void create_tags(GtkTextBuffer *buffer)
 	
 	gtk_text_buffer_create_tag(buffer, "red_foreground", "foreground",
                                                                "darkred", NULL);
+}
+
+static void cb_about_window()
+{
+	GtkWidget *about;
+	
+	const gchar *authors[2] = { "Andrew Clayton <andrew@pccl.info>", 
+							(const char*)NULL };
+
+	about = gtk_about_dialog_new();
+
+	gtk_window_set_title(GTK_WINDOW(about), "About ViewBRIF");
+	gtk_about_dialog_set_name(GTK_ABOUT_DIALOG(about), "ViewBRIF");
+	gtk_about_dialog_set_copyright(GTK_ABOUT_DIALOG(about), 
+				"Copyright (C) 2006 Andrew Clayton");
+	gtk_about_dialog_set_authors(GTK_ABOUT_DIALOG(about), 
+						(const gchar **)&authors);
+	gtk_widget_show(about);
 }
 
 static void cb_file_selected(GtkWidget *w, GtkFileSelection *fs)
@@ -362,6 +381,9 @@ int main(int argc, char *argv[])
 	GtkWidget *filemenu_new_window;
 	GtkWidget *filemenu_open;
 	GtkWidget *filemenu_quit;
+	GtkWidget *helpmenu;
+	GtkWidget *helpmenu_menu;
+	GtkWidget *helpmenu_about;
 	GtkWidget *separator_menu_item;
 	GtkAccelGroup *accel_group;
 	PangoFontDescription *font_desc;
@@ -421,7 +443,20 @@ int main(int argc, char *argv[])
 	gtk_widget_show(filemenu_quit);
 	gtk_container_add(GTK_CONTAINER(filemenu_menu), filemenu_quit);
 
-		
+	/* Create the help menu */
+        helpmenu = gtk_menu_item_new_with_mnemonic(("_Help"));
+        gtk_widget_show(helpmenu);
+        gtk_container_add(GTK_CONTAINER(menubar), helpmenu);
+
+	helpmenu_menu = gtk_menu_new();
+        gtk_menu_item_set_submenu(GTK_MENU_ITEM(helpmenu), helpmenu_menu);		
+	/* Create the about menu item */
+        helpmenu_about = gtk_image_menu_item_new_from_stock("gtk-about",
+                                                                accel_group);
+        gtk_widget_show(helpmenu_about);
+        gtk_container_add(GTK_CONTAINER(helpmenu_menu), helpmenu_about);
+
+
 	/* Create a new scrolled window. */
 	scrolled_window = gtk_scrolled_window_new(NULL, NULL);
 	gtk_widget_show(scrolled_window);
@@ -456,7 +491,7 @@ int main(int argc, char *argv[])
 	g_signal_connect((gpointer) filemenu_new_window, "activate", G_CALLBACK(
                                                 cb_new_window), NULL);
 	g_signal_connect((gpointer) filemenu_open, "activate", G_CALLBACK(      				cb_file_selector), (gpointer) text_view);
-
+	g_signal_connect((gpointer) helpmenu_about, "activate", G_CALLBACK(                                 				cb_about_window), NULL);
 
 	/* Change default font throughout text_view */
 	font_desc = pango_font_description_from_string("Monospace");
