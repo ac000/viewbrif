@@ -1,3 +1,15 @@
+/*
+ * ViewBRIF
+ *
+ * A GUI BRIF file viewer
+ *
+ * Copyright (C) 2006, Andrew Clayton
+ *
+ * September 6th 2006
+ *	andrew@pccl.info
+ */
+
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
