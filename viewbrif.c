@@ -96,6 +96,9 @@ static void create_tags(GtkTextBuffer *buffer)
 	
 	gtk_text_buffer_create_tag(buffer, "red_foreground", "foreground",
                                                                "darkred", NULL);
+	
+	gtk_text_buffer_create_tag(buffer, "grey_background", "background", 
+							"lightgrey", NULL);
 }
 
 static void cb_about_window()
@@ -216,7 +219,8 @@ static void process_line(char *fline, int line_array[][2],
                 memset(data, '\0', sizeof(char) * (flen  + 2));
                 strncpy(data, fline + fstart, flen);
                 strcat(data, "\n");
-                gtk_text_buffer_insert(buffer, &iter, data, -1);
+                gtk_text_buffer_insert_with_tags_by_name(buffer, &iter, data, 
+						-1, "grey_background", NULL);
                 free(data);
                 line_pos += flen;
                 i++;
@@ -492,6 +496,7 @@ int main(int argc, char *argv[])
                                                 cb_new_window), NULL);
 	g_signal_connect((gpointer) filemenu_open, "activate", G_CALLBACK(      				cb_file_selector), (gpointer) text_view);
 	g_signal_connect((gpointer) helpmenu_about, "activate", G_CALLBACK(                                 				cb_about_window), NULL);
+
 
 	/* Change default font throughout text_view */
 	font_desc = pango_font_description_from_string("Monospace");
