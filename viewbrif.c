@@ -20,7 +20,7 @@
 #include <gtk/gtk.h>
 
 /* Update for application version. */
-#define VERSION		"001"
+#define VERSION		"001.90"
 
 
 #define PAD_LEFT        0
@@ -32,7 +32,9 @@ int line_no = 1;
 int line_pos = 0;
 
 GtkWidget *text_view;
+GtkWidget *text_view_raw;
 GtkTextIter iter;
+GtkTextIter iter_raw;
 
 
 static void str_pad(char *newstr, char *str, int len, char *padchar, int just);
@@ -382,6 +384,7 @@ int main(int argc, char *argv[])
 {
 	static GtkWidget *window;
 	GtkWidget *scrolled_window;
+	GtkWidget *scrolled_window_raw;
 	GtkWidget *vbox;
 	GtkWidget *menubar;
 	GtkWidget *filemenu;
@@ -393,6 +396,9 @@ int main(int argc, char *argv[])
 	GtkWidget *helpmenu_menu;
 	GtkWidget *helpmenu_about;
 	GtkWidget *separator_menu_item;
+	GtkWidget *notebook;
+	GtkWidget *split_label;
+	GtkWidget *raw_label;
 	GtkAccelGroup *accel_group;
 	PangoFontDescription *font_desc;
 
@@ -410,16 +416,18 @@ int main(int argc, char *argv[])
 	gtk_container_set_border_width(GTK_CONTAINER(window), 0);
     	gtk_widget_set_size_request(window, 700, 800);
 
+	
 	/* vbox to hold stuff */
 	vbox = gtk_vbox_new(FALSE, 0);
 	gtk_widget_show(vbox);
 	gtk_container_add(GTK_CONTAINER(window), vbox);
 
+
 	/* Create the menubar */
 	menubar = gtk_menu_bar_new();
-  	gtk_widget_show(menubar);
-  	gtk_box_pack_start(GTK_BOX(vbox), menubar, FALSE, FALSE, 0);	
-
+	gtk_widget_show(menubar);
+	gtk_box_pack_start(GTK_BOX(vbox), menubar, FALSE, FALSE, 0);
+	
 	/* Create the file menu */
 	filemenu = gtk_menu_item_new_with_mnemonic(("_File"));
 	gtk_widget_show(filemenu);
@@ -464,12 +472,20 @@ int main(int argc, char *argv[])
         gtk_widget_show(helpmenu_about);
         gtk_container_add(GTK_CONTAINER(helpmenu_menu), helpmenu_about);
 
-
-	/* Create a new scrolled window. */
+	
+	/* Create a notebook */
+        notebook = gtk_notebook_new();
+	gtk_notebook_set_tab_pos(GTK_NOTEBOOK(notebook), GTK_POS_TOP);
+	gtk_widget_show(notebook);
+	gtk_box_pack_start(GTK_BOX(vbox), notebook, TRUE, TRUE, 0);
+	gtk_container_set_border_width(GTK_CONTAINER(notebook), 10);
+	
+	
+	/* Create a new scrolled window for the split view. */
 	scrolled_window = gtk_scrolled_window_new(NULL, NULL);
 	gtk_widget_show(scrolled_window);
-	gtk_box_pack_start(GTK_BOX(vbox), scrolled_window, TRUE, TRUE, 0);
-	gtk_container_set_border_width(GTK_CONTAINER(scrolled_window), 10);
+	gtk_container_add(GTK_CONTAINER(notebook), scrolled_window);	
+	gtk_container_set_border_width(GTK_CONTAINER(scrolled_window), 5);
 
 	/* 
 	 * The policy is one of GTK_POLICY AUTOMATIC, or GTK_POLICY_ALWAYS.
@@ -482,7 +498,10 @@ int main(int argc, char *argv[])
 				GTK_POLICY_AUTOMATIC, GTK_POLICY_ALWAYS);
 	
 
-	/* Create a text view object and set it RO with invisible cursor. */	
+	/* 
+	 * Create a text view for the split view and set it RO with 
+	 * invisible cursor. 
+	 */	
 	text_view = gtk_text_view_new();
 	gtk_widget_show(text_view);
 	gtk_container_add(GTK_CONTAINER(scrolled_window), text_view);
@@ -492,6 +511,43 @@ int main(int argc, char *argv[])
 	
 	gtk_window_add_accel_group(GTK_WINDOW(window), accel_group);		
 
+	
+	/* Create a new scrolled window for the raw view. */
+        scrolled_window_raw = gtk_scrolled_window_new(NULL, NULL);
+        gtk_widget_show(scrolled_window_raw);
+        gtk_container_add(GTK_CONTAINER(notebook), scrolled_window_raw);
+        gtk_container_set_border_width(GTK_CONTAINER(scrolled_window_raw), 5);
+
+        /*
+         * The policy is one of GTK_POLICY AUTOMATIC, or GTK_POLICY_ALWAYS.
+         * GTK_POLICY_AUTOMATIC will automatically decide whether you need
+         * scrollbars, whereas GTK_POLICY_ALWAYS will always leave the
+         * scrollbars there. The first one is the horizontal scrollbar,
+         * the second, the vertical.
+         */
+        gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scrolled_window_raw),
+                                GTK_POLICY_AUTOMATIC, GTK_POLICY_ALWAYS);
+
+
+        /* 
+	 * Create a text view for the raw view  and set it RO with
+         * invisible cursor.
+         */
+        text_view_raw = gtk_text_view_new();
+        gtk_widget_show(text_view_raw);
+        gtk_container_add(GTK_CONTAINER(scrolled_window_raw), text_view_raw);
+
+        gtk_text_view_set_editable(GTK_TEXT_VIEW(text_view_raw), FALSE);
+        gtk_text_view_set_cursor_visible(GTK_TEXT_VIEW(text_view_raw), FALSE);
+
+	
+	/* Set tab labels */
+	split_label = gtk_label_new("Split View");
+	gtk_notebook_set_tab_label(GTK_NOTEBOOK(notebook), scrolled_window,
+							split_label);
+	raw_label = gtk_label_new("Raw View");
+	gtk_notebook_set_tab_label(GTK_NOTEBOOK(notebook), scrolled_window_raw,
+                                                        raw_label);
 
 	/* Menu item callbacks */
 	g_signal_connect((gpointer) filemenu_quit, "activate", G_CALLBACK(
