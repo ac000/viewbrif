@@ -56,7 +56,7 @@ static void str_pad(char *newstr, char *str, int len, char *padchar, int just)
         if (just == PAD_LEFT || just == PAD_RIGHT) {
                 padstr = (char *) malloc(sizeof(char) * (len - strlen(str))
                                                                         + 1);
-                memset(padstr, 0, sizeof(char) * (len - strlen(str)) + 1);
+                memset(padstr, '\0', sizeof(char) * (len - strlen(str)) + 1);
 
                 for (i = 0; i < (len - strlen(str)); i++)
                         strcat(padstr, padchar);
@@ -67,7 +67,7 @@ static void str_pad(char *newstr, char *str, int len, char *padchar, int just)
                         sprintf(newstr, "%s%s", str, padstr);
         } else if (just == PAD_CENT) {
                 padstr = (char *) malloc(sizeof(char) * len + 1);
-                memset(padstr, 0, sizeof(char) * len + 1);
+                memset(padstr, '\0', sizeof(char) * len + 1);
 
                 for (i = 0; i < len; i++)
                         strcat(padstr, padchar);
@@ -127,7 +127,7 @@ static void cb_file_selected(GtkWidget *w, GtkFileSelection *fs)
 
 	len = strlen(gtk_file_selection_get_filename(GTK_FILE_SELECTION(fs)));
 	fpath = (char *) malloc(sizeof(char) * (len + 1));
-	memset(fpath, 0, sizeof(char) * (len + 1));
+	memset(fpath, '\0', sizeof(char) * (len + 1));
 	strcpy(fpath, gtk_file_selection_get_filename(GTK_FILE_SELECTION(fs)));
 
 	printf("Selected file path = %s\n", fpath);
