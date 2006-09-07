@@ -20,7 +20,7 @@
 #include <gtk/gtk.h>
 
 /* Update for application version. */
-#define VERSION		"001.90"
+#define VERSION		"002"
 
 
 #define PAD_LEFT        0
@@ -46,6 +46,7 @@ static void cb_file_selector();
 static void cb_file_selected(GtkWidget *w, GtkFileSelection *fs);
 static void process_line(char *fline, int line_array[][2], 
 							char *field_headers[]);
+static void display_raw_line(char *fline, int line_array[][2]);
 static void do_main_record(char *fline);
 static void do_purchasing_card(char *fline);
 static void do_purchasing_card_item(char *fline);
@@ -104,6 +105,9 @@ static void create_tags(GtkTextBuffer *buffer)
 	
 	gtk_text_buffer_create_tag(buffer, "grey_background", "background", 
 							"lightgrey", NULL);
+	
+	gtk_text_buffer_create_tag(buffer, "orange_background", "background",
+                                                        "orange", NULL);
 }
 
 static void cb_about_window()
@@ -226,11 +230,46 @@ static void process_line(char *fline, int line_array[][2],
                 strncpy(data, fline + fstart, flen);
                 strcat(data, "\n");
                 gtk_text_buffer_insert_with_tags_by_name(buffer, &iter, data, 
-						-1, "grey_background", NULL);
+						-1, "orange_background", NULL);
                 free(data);
                 line_pos += flen;
                 i++;
         }
+
+	display_raw_line(fline, line_array);
+}
+
+static void display_raw_line(char *fline, int line_array[][2])
+{
+	char *data;
+	int i = 0, fstart = 0, flen = 0, color_flag = 0;
+
+	GtkTextBuffer *buffer_raw;
+
+	buffer_raw = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text_view_raw));
+	gtk_text_buffer_get_end_iter(buffer_raw, &iter_raw);
+
+	
+	while (strncmp(fline + fstart, "\r\n", 2) != 0) {
+		fstart = line_array[i][0];
+		flen = line_array[i][1];
+		data = (char *) malloc(sizeof(char) * (flen  + 2));
+		memset(data, '\0', sizeof(char) * (flen  + 2));
+		strncpy(data, fline + fstart, flen);		
+		
+		if (color_flag == 0) {
+			gtk_text_buffer_insert(buffer_raw, &iter_raw, data, 
+									-1);
+			color_flag = 1;
+		} else if (color_flag == 1) {
+			gtk_text_buffer_insert_with_tags_by_name(buffer_raw, 
+							&iter_raw, data, -1, 
+						"grey_background", NULL);
+			color_flag = 0;
+		}
+		
+		i++;
+	}
 }
 
 static void do_main_record(char *fline)
@@ -338,7 +377,7 @@ static void read_file(char *fn)
 	FILE *fp;
 	
 	GtkTextBuffer *buffer;
-	GtkTextIter iter;
+	GtkTextBuffer *buffer_raw;
 
 	
 	/* Reset global counters and clear the text view */
@@ -351,8 +390,15 @@ static void read_file(char *fn)
 	/* Pretty print filename */
 	buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text_view));
 	gtk_text_buffer_get_start_iter(buffer, &iter);
-       
+	
+	/* Get the raw buffer */
+	buffer_raw = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text_view_raw));
+	gtk_text_buffer_get_start_iter(buffer_raw, &iter_raw);       
+
+	/* Create the text tags for the two buffers */
 	create_tags(buffer);
+	create_tags(buffer_raw);
+
 	gtk_text_buffer_insert_with_tags_by_name(buffer, &iter, 
 					"Displaying file: ", -1, "bold", NULL);
         gtk_text_buffer_insert_with_tags_by_name(buffer, &iter, fn, -1, 
@@ -529,10 +575,10 @@ int main(int argc, char *argv[])
                                 GTK_POLICY_AUTOMATIC, GTK_POLICY_ALWAYS);
 
 
-        /* 
+	/* 
 	 * Create a text view for the raw view  and set it RO with
-         * invisible cursor.
-         */
+	 * invisible cursor.
+	 */
         text_view_raw = gtk_text_view_new();
         gtk_widget_show(text_view_raw);
         gtk_container_add(GTK_CONTAINER(scrolled_window_raw), text_view_raw);
@@ -558,10 +604,11 @@ int main(int argc, char *argv[])
 	g_signal_connect((gpointer) helpmenu_about, "activate", G_CALLBACK(                                 				cb_about_window), NULL);
 
 
-	/* Change default font throughout text_view */
+	/* Change default font throughout the text views */
 	font_desc = pango_font_description_from_string("Monospace");
 	gtk_widget_modify_font(text_view, font_desc);
-	pango_font_description_free(font_desc);	
+	gtk_widget_modify_font(text_view_raw, font_desc);
+	pango_font_description_free(font_desc);
 
 
 	gtk_widget_show(window);
