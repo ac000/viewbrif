@@ -20,7 +20,7 @@
 #include <gtk/gtk.h>
 
 /* Update for application version. */
-#define VERSION		"002"
+#define VERSION		"003"
 
 
 #define PAD_LEFT        0
@@ -107,7 +107,7 @@ static void create_tags(GtkTextBuffer *buffer)
 							"lightgrey", NULL);
 	
 	gtk_text_buffer_create_tag(buffer, "orange_background", "background",
-                                                        "orange", NULL);
+                                                        "#e8c668", NULL);
 }
 
 static void cb_about_window()
@@ -383,7 +383,10 @@ static void read_file(char *fn)
 	/* Reset global counters and clear the text view */
 	line_no = 1;
 	line_pos = 0;
+	
+	/* Reset the text views */
 	gtk_text_view_set_buffer(GTK_TEXT_VIEW(text_view), NULL);
+	gtk_text_view_set_buffer(GTK_TEXT_VIEW(text_view_raw), NULL);
 
 	fp = fopen(fn, "r");
 
