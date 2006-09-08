@@ -1,3 +1,8 @@
+viewbrif-004    2006-09-09      Andrew Clayton <andrew@pccl.info>
+
+	Add line numbers to the raw view.
+
+
 viewbrif-003	2006-09-08	Andrew Clayton <andrew@pccl.info>
 
 	Bugfix release: Clear the raw view buffer on each file read.
