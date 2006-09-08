@@ -20,7 +20,7 @@
 #include <gtk/gtk.h>
 
 /* Update for application version. */
-#define VERSION		"003"
+#define VERSION		"003.90"
 
 
 #define PAD_LEFT        0
@@ -33,8 +33,27 @@ int line_pos = 0;
 
 GtkWidget *text_view;
 GtkWidget *text_view_raw;
+GtkWidget *text_view_stats;
 GtkTextIter iter;
 GtkTextIter iter_raw;
+GtkTextIter iter_stats;
+
+
+/* Structure to hold brif file stats */
+struct stats {
+	int trans;
+	int credits;
+	int sales;
+	long int amount;
+};
+
+struct stats brif_stats = {
+	0, 
+	0, 
+	0, 
+	0 
+};
+	
 
 
 static void str_pad(char *newstr, char *str, int len, char *padchar, int just);
@@ -47,6 +66,8 @@ static void cb_file_selected(GtkWidget *w, GtkFileSelection *fs);
 static void process_line(char *fline, int line_array[][2], 
 							char *field_headers[]);
 static void display_raw_line(char *fline, int line_array[][2]);
+static void gather_stats(char *fline, int line_array[][2]);
+static void display_stats();
 static void do_main_record(char *fline);
 static void do_purchasing_card(char *fline);
 static void do_purchasing_card_item(char *fline);
@@ -237,6 +258,7 @@ static void process_line(char *fline, int line_array[][2],
         }
 
 	display_raw_line(fline, line_array);
+	gather_stats(fline, line_array);
 }
 
 static void display_raw_line(char *fline, int line_array[][2])
@@ -270,6 +292,50 @@ static void display_raw_line(char *fline, int line_array[][2])
 		
 		i++;
 	}
+}
+
+static void gather_stats(char *fline, int line_array[][2])
+{
+	int fstart = 0, flen = 0;
+	char *data;
+
+	if (strncmp(fline + 1, "A", 1) == 0) {
+		brif_stats.trans++;
+		
+		if (strncmp(fline + 2, "S", 1) == 0)
+			brif_stats.sales++;
+		if (strncmp(fline + 2, "R", 1) == 0)
+			brif_stats.credits++;
+		
+		fstart = line_array[14][0];
+		flen = line_array[14][1];
+		data = (char *) malloc(sizeof(char) * (flen + 2));
+		memset(data, '\0', sizeof(char) * (flen  + 2));
+                strncpy(data, fline + fstart, flen);
+
+		brif_stats.amount += atoi(data);
+		free(data);
+	}
+}
+
+static void display_stats()
+{
+	char *val;
+
+	GtkTextBuffer *buffer_stats;
+
+	
+	buffer_stats = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text_view_stats));
+	gtk_text_buffer_get_end_iter(buffer_stats, &iter_stats);	
+	
+	val = (char *) malloc(sizeof(brif_stats.trans) + 1);
+	memset(val, '\0', sizeof(brif_stats.trans) + 1);
+	sprintf(val, "%d", brif_stats.trans);;	
+	gtk_text_buffer_insert(buffer_stats, &iter_stats, 
+					"Number of transactions: ", -1);
+	gtk_text_buffer_insert(buffer_stats, &iter_stats, val, -1);
+	free(val);
+	
 }
 
 static void do_main_record(char *fline)
@@ -378,6 +444,7 @@ static void read_file(char *fn)
 	
 	GtkTextBuffer *buffer;
 	GtkTextBuffer *buffer_raw;
+	GtkTextBuffer *buffer_stats;
 
 	
 	/* Reset global counters and clear the text view */
@@ -387,6 +454,7 @@ static void read_file(char *fn)
 	/* Reset the text views */
 	gtk_text_view_set_buffer(GTK_TEXT_VIEW(text_view), NULL);
 	gtk_text_view_set_buffer(GTK_TEXT_VIEW(text_view_raw), NULL);
+	gtk_text_view_set_buffer(GTK_TEXT_VIEW(text_view_stats), NULL);
 
 	fp = fopen(fn, "r");
 
@@ -398,9 +466,14 @@ static void read_file(char *fn)
 	buffer_raw = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text_view_raw));
 	gtk_text_buffer_get_start_iter(buffer_raw, &iter_raw);       
 
-	/* Create the text tags for the two buffers */
+	/* Get the stats buffer */
+        buffer_stats = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text_view_stats));
+        gtk_text_buffer_get_start_iter(buffer_stats, &iter_stats);
+
+	/* Create the text tags for the text buffers */
 	create_tags(buffer);
 	create_tags(buffer_raw);
+	create_tags(buffer_stats);
 
 	gtk_text_buffer_insert_with_tags_by_name(buffer, &iter, 
 					"Displaying file: ", -1, "bold", NULL);
@@ -426,6 +499,8 @@ static void read_file(char *fn)
         }
 
         fclose(fp);
+
+	display_stats();
 }
 
 
@@ -448,6 +523,7 @@ int main(int argc, char *argv[])
 	GtkWidget *notebook;
 	GtkWidget *split_label;
 	GtkWidget *raw_label;
+	GtkWidget *stats_label;
 	GtkAccelGroup *accel_group;
 	PangoFontDescription *font_desc;
 
@@ -578,25 +654,42 @@ int main(int argc, char *argv[])
                                 GTK_POLICY_AUTOMATIC, GTK_POLICY_ALWAYS);
 
 
-	/* 
-	 * Create a text view for the raw view  and set it RO with
+	/*
+	 * Create a text view for the raw view and set it RO with
 	 * invisible cursor.
 	 */
-        text_view_raw = gtk_text_view_new();
-        gtk_widget_show(text_view_raw);
-        gtk_container_add(GTK_CONTAINER(scrolled_window_raw), text_view_raw);
+	text_view_raw = gtk_text_view_new();
+	gtk_widget_show(text_view_raw);
+	gtk_container_add(GTK_CONTAINER(scrolled_window_raw), text_view_raw);
 
-        gtk_text_view_set_editable(GTK_TEXT_VIEW(text_view_raw), FALSE);
-        gtk_text_view_set_cursor_visible(GTK_TEXT_VIEW(text_view_raw), FALSE);
+	gtk_text_view_set_editable(GTK_TEXT_VIEW(text_view_raw), FALSE);
+	gtk_text_view_set_cursor_visible(GTK_TEXT_VIEW(text_view_raw), FALSE);
 
 	
+	/*
+	 * Create a text view for the stats view and set it RO with
+	 * invisible cursor.
+	 */
+	text_view_stats = gtk_text_view_new();
+	gtk_widget_show(text_view_stats);
+	gtk_container_add(GTK_CONTAINER(notebook), text_view_stats);
+
+	gtk_text_view_set_editable(GTK_TEXT_VIEW(text_view_stats), FALSE);
+	gtk_text_view_set_cursor_visible(GTK_TEXT_VIEW(text_view_stats), FALSE);
+
+
 	/* Set tab labels */
-	split_label = gtk_label_new("Split View");
+	split_label = gtk_label_new(" Split View ");
 	gtk_notebook_set_tab_label(GTK_NOTEBOOK(notebook), scrolled_window,
 							split_label);
-	raw_label = gtk_label_new("Raw View");
+	raw_label = gtk_label_new(" Raw View ");
 	gtk_notebook_set_tab_label(GTK_NOTEBOOK(notebook), scrolled_window_raw,
                                                         raw_label);
+
+	stats_label = gtk_label_new(" Stats ");
+        gtk_notebook_set_tab_label(GTK_NOTEBOOK(notebook), text_view_stats,
+                                                        stats_label);
+
 
 	/* Menu item callbacks */
 	g_signal_connect((gpointer) filemenu_quit, "activate", G_CALLBACK(
