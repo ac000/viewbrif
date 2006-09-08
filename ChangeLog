@@ -1,0 +1,13 @@
+viewbrif-003	2006-09-08	Andrew Clayton <andrew@pccl.info>
+
+	Bugfix release: Clear the raw view buffer on each file read.
+
+
+viewbrif-002	2006-09-07	Andrew Clayton <andrew@pccl.info>
+	
+	Added a raw view
+
+
+viewbrif-001	2006-09-06	Andrew Clayton <andrew@pccl.info>
+	
+	Initial version with split view.
