@@ -20,7 +20,7 @@
 #include <gtk/gtk.h>
 
 /* Update for application version. */
-#define VERSION		"003.90"
+#define VERSION		"004"
 
 
 #define PAD_LEFT        0
@@ -129,6 +129,9 @@ static void create_tags(GtkTextBuffer *buffer)
 	
 	gtk_text_buffer_create_tag(buffer, "orange_background", "background",
                                                         "#e8c668", NULL);
+
+	gtk_text_buffer_create_tag(buffer, "lightblue_background", 
+						"background", "#cce4ff", NULL);
 }
 
 static void cb_about_window()
@@ -263,7 +266,7 @@ static void process_line(char *fline, int line_array[][2],
 
 static void display_raw_line(char *fline, int line_array[][2])
 {
-	char *data;
+	char *data, ln[7];
 	int i = 0, fstart = 0, flen = 0, color_flag = 0;
 
 	GtkTextBuffer *buffer_raw;
@@ -271,6 +274,10 @@ static void display_raw_line(char *fline, int line_array[][2])
 	buffer_raw = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text_view_raw));
 	gtk_text_buffer_get_end_iter(buffer_raw, &iter_raw);
 
+	sprintf(ln, "%-6d", line_no - 1);
+	/*str_pad(ln, line_no, 5, " ", PAD_RIGHT);*/
+ 	gtk_text_buffer_insert_with_tags_by_name(buffer_raw, &iter_raw, ln, -1,
+						"lightblue_background", NULL);
 	
 	while (strncmp(fline + fstart, "\r\n", 2) != 0) {
 		fstart = line_array[i][0];
@@ -672,7 +679,7 @@ int main(int argc, char *argv[])
 	 */
 	text_view_stats = gtk_text_view_new();
 	gtk_widget_show(text_view_stats);
-	gtk_container_add(GTK_CONTAINER(notebook), text_view_stats);
+	/*gtk_container_add(GTK_CONTAINER(notebook), text_view_stats);*/
 
 	gtk_text_view_set_editable(GTK_TEXT_VIEW(text_view_stats), FALSE);
 	gtk_text_view_set_cursor_visible(GTK_TEXT_VIEW(text_view_stats), FALSE);
