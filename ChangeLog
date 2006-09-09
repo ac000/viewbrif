@@ -1,3 +1,9 @@
+viewbrif-005    2006-09-09      Andrew Clayton <andrew@pccl.info>
+
+	Fixed a memory leak
+	Added some simple stats
+
+
 viewbrif-004    2006-09-09      Andrew Clayton <andrew@pccl.info>
 
 	Add line numbers to the raw view.

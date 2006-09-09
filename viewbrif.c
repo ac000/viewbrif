@@ -16,12 +16,15 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <locale.h>
+#include <monetary.h>
+
 
 #include <gdk/gdkkeysyms.h>
 #include <gtk/gtk.h>
 
 /* Update for application version. */
-#define VERSION		"004.90"
+#define VERSION		"005"
 
 
 #define PAD_LEFT        0
@@ -46,6 +49,7 @@ struct stats {
 	int credits;
 	int sales;
 	long int amount;
+	long int vat_ta;
 	long int file_size;
 };
 
@@ -54,11 +58,12 @@ struct stats brif_stats = {
 	0, 
 	0, 
 	0,
+	0,
 	0
 };
-	
 
 
+static double add_dp(long int amount);
 static void str_pad(char *newstr, char *str, int len, char *padchar, int just);
 static void create_tags(GtkTextBuffer *buffer);
 static void cb_about_window();
@@ -76,6 +81,43 @@ static void do_purchasing_card(char *fline);
 static void do_purchasing_card_item(char *fline);
 static void read_file(char *fn);
 
+
+static double add_dp(long int amount)
+{
+	/*
+	 * Takes a brif format amount, e.g 17520 and returns this value with
+	 * the decimal point added, i.e 175.20
+	 */
+
+	char *na, *na2;
+	double da;
+
+	/* brif amount format */
+	na = (char *) malloc(sizeof(amount) + 1);
+	memset(na, '\0', sizeof(amount) + 1);
+	sprintf(na, "%ld", amount);
+
+	/* brif amount format with the dp added */
+	na2 = (char *) malloc(sizeof(na) + 1);
+	memset(na2, '\0', sizeof(na) + 1);
+
+	/* If we got less than 100p prepend a 0 to the value for strfmon() */
+	if (amount < 100)
+		strcat(na2, "0");
+
+	strncat(na2, na, strlen(na) - 2);
+	strcat(na2, ".");
+	strncat(na2, na + strlen(na) - 2, 2);
+
+	da = atof(na2);
+        
+	printf("%f\t%s\t%s\n", da, na, na2);
+
+	free(na);
+	free(na2);
+
+	return da;
+}
 
 static void str_pad(char *newstr, char *str, int len, char *padchar, int just)
 {
@@ -326,17 +368,31 @@ static void gather_stats(char *fline, int line_array[][2])
 
 		brif_stats.amount += atoi(data);
 		free(data);
+	} else if (strncmp(fline + 2, "P", 1) == 0) {
+		fstart = line_array[5][0];
+		flen = line_array[5][1];
+	
+		data = (char *) malloc(sizeof(char) * (flen + 2));
+		memset(data, '\0', sizeof(char) * (flen  + 2));
+		strncpy(data, fline + fstart, flen);
+
+		brif_stats.vat_ta += atoi(data);
+		free(data);
 	}
 }
 
 static void display_stats()
 {
-	char *val, fn[31];
+	char *val, fn[31], famount[21];
 	int flen = 30;
+	double amnt = 0.0;
 
 	GtkTextBuffer *buffer_stats;
 
-	
+
+	/* Set the locale to the users */
+	setlocale(LC_ALL, "");
+
 	buffer_stats = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text_view_stats));
 	gtk_text_buffer_get_end_iter(buffer_stats, &iter_stats);	
 
@@ -344,17 +400,17 @@ static void display_stats()
 	val = (char *) malloc(sizeof(brif_stats.file_size) + 1);
 	memset(val, '\0', sizeof(brif_stats.file_size) + 1);
 	sprintf(val, "%ld", brif_stats.file_size);
-	str_pad(fn, "File size:", flen, " ", PAD_RIGHT); 	
+	str_pad(fn, "File size", flen, " ", PAD_RIGHT); 	
 	gtk_text_buffer_insert(buffer_stats, &iter_stats, fn, -1);
 	gtk_text_buffer_insert(buffer_stats, &iter_stats, val, -1);
 	free(val);
-	gtk_text_buffer_insert(buffer_stats, &iter_stats, " bytes.\n", -1);
+	gtk_text_buffer_insert(buffer_stats, &iter_stats, " bytes\n\n", -1);
 	
 	/* Number of transactions */
 	val = (char *) malloc(sizeof(brif_stats.trans) + 2);
 	memset(val, '\0', sizeof(brif_stats.trans) + 2);
 	sprintf(val, "%d\n", brif_stats.trans);	
-	str_pad(fn, "Number of transactions:", flen, " ", PAD_RIGHT);
+	str_pad(fn, "Number of transactions", flen, " ", PAD_RIGHT);
 	gtk_text_buffer_insert(buffer_stats, &iter_stats, fn, -1);
 	gtk_text_buffer_insert(buffer_stats, &iter_stats, val, -1);
 	free(val);
@@ -363,28 +419,33 @@ static void display_stats()
 	val = (char *) malloc(sizeof(brif_stats.sales) + 2);
 	memset(val, '\0', sizeof(brif_stats.sales) + 2);
 	sprintf(val, "%d\n", brif_stats.sales);
-	str_pad(fn, "                 Sales:", flen, " ", PAD_RIGHT);
+	str_pad(fn, "                 Sales", flen, " ", PAD_RIGHT);
 	gtk_text_buffer_insert(buffer_stats, &iter_stats, fn, -1);
 	gtk_text_buffer_insert(buffer_stats, &iter_stats, val, -1);
 	free(val);
 
 	/* Number of credits */
-	val = (char *) malloc(sizeof(brif_stats.credits) + 2);
-	memset(val, '\0', sizeof(brif_stats.credits) + 2);
-	sprintf(val, "%d\n", brif_stats.credits);
-	str_pad(fn, "               Credits:", flen, " ", PAD_RIGHT);
+	val = (char *) malloc(sizeof(brif_stats.credits) + 3);
+	memset(val, '\0', sizeof(brif_stats.credits) + 3);
+	sprintf(val, "%d\n\n", brif_stats.credits);
+	str_pad(fn, "               Credits", flen, " ", PAD_RIGHT);
 	gtk_text_buffer_insert(buffer_stats, &iter_stats, fn, -1);
 	gtk_text_buffer_insert(buffer_stats, &iter_stats, val, -1);
 	free(val);
 
-	/* Amount from main reocrd */
-	val = (char *) malloc(sizeof(brif_stats.amount) + 2);
-	memset(val, '\0', sizeof(brif_stats.amount) + 2);
-	sprintf(val, "%ld\n", brif_stats.amount);
-	str_pad(fn, "Amount (from main reocrd):", flen, " ", PAD_RIGHT);
+	/* Amount from main record */
+	amnt = add_dp(brif_stats.amount);
+	strfmon(famount, sizeof(famount), "%=#8.2n\n", amnt);
+	str_pad(fn, "Amount total", flen, " ", PAD_RIGHT);
 	gtk_text_buffer_insert(buffer_stats, &iter_stats, fn, -1);
-	gtk_text_buffer_insert(buffer_stats, &iter_stats, val, -1);
-	free(val);
+	gtk_text_buffer_insert(buffer_stats, &iter_stats, famount, -1);
+
+	/* VAT transaction amount */
+        amnt = add_dp(brif_stats.vat_ta);
+        strfmon(famount, sizeof(famount), "%=#8.2n\n", amnt);
+        str_pad(fn, "VAT total", flen, " ", PAD_RIGHT);
+        gtk_text_buffer_insert(buffer_stats, &iter_stats, fn, -1);
+        gtk_text_buffer_insert(buffer_stats, &iter_stats, famount, -1);
 }
 
 static void do_main_record(char *fline)
