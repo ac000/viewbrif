@@ -20,7 +20,7 @@
 #include <gtk/gtk.h>
 
 /* Update for application version. */
-#define VERSION		"004"
+#define VERSION		"004.90"
 
 
 #define PAD_LEFT        0
@@ -127,8 +127,8 @@ static void create_tags(GtkTextBuffer *buffer)
 	gtk_text_buffer_create_tag(buffer, "grey_background", "background", 
 							"lightgrey", NULL);
 	
-	gtk_text_buffer_create_tag(buffer, "orange_background", "background",
-                                                        "#e8c668", NULL);
+	gtk_text_buffer_create_tag(buffer, "orange_background", 
+						"background", "#ffd24B", NULL);
 
 	gtk_text_buffer_create_tag(buffer, "lightblue_background", 
 						"background", "#cce4ff", NULL);
@@ -296,7 +296,8 @@ static void display_raw_line(char *fline, int line_array[][2])
 						"grey_background", NULL);
 			color_flag = 0;
 		}
-		
+	
+		free(data);	
 		i++;
 	}
 }
