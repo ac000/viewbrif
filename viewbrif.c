@@ -14,6 +14,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
+#include <sys/stat.h>
 #include <unistd.h>
 
 #include <gdk/gdkkeysyms.h>
@@ -45,13 +46,15 @@ struct stats {
 	int credits;
 	int sales;
 	long int amount;
+	long int file_size;
 };
 
 struct stats brif_stats = {
 	0, 
 	0, 
 	0, 
-	0 
+	0,
+	0
 };
 	
 
@@ -79,8 +82,8 @@ static void str_pad(char *newstr, char *str, int len, char *padchar, int just)
         char *padstr;
         int i, ppos;
 
-
-        if (just == PAD_LEFT || just == PAD_RIGHT) {
+        
+	if (just == PAD_LEFT || just == PAD_RIGHT) {
                 padstr = (char *) malloc(sizeof(char) * (len - strlen(str))
                                                                         + 1);
                 memset(padstr, '\0', sizeof(char) * (len - strlen(str)) + 1);
@@ -328,22 +331,60 @@ static void gather_stats(char *fline, int line_array[][2])
 
 static void display_stats()
 {
-	char *val;
+	char *val, fn[31];
+	int flen = 30;
 
 	GtkTextBuffer *buffer_stats;
 
 	
 	buffer_stats = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text_view_stats));
 	gtk_text_buffer_get_end_iter(buffer_stats, &iter_stats);	
-	
-	val = (char *) malloc(sizeof(brif_stats.trans) + 1);
-	memset(val, '\0', sizeof(brif_stats.trans) + 1);
-	sprintf(val, "%d", brif_stats.trans);;	
-	gtk_text_buffer_insert(buffer_stats, &iter_stats, 
-					"Number of transactions: ", -1);
+
+	/* File Size */
+	val = (char *) malloc(sizeof(brif_stats.file_size) + 1);
+	memset(val, '\0', sizeof(brif_stats.file_size) + 1);
+	sprintf(val, "%ld", brif_stats.file_size);
+	str_pad(fn, "File size:", flen, " ", PAD_RIGHT); 	
+	gtk_text_buffer_insert(buffer_stats, &iter_stats, fn, -1);
 	gtk_text_buffer_insert(buffer_stats, &iter_stats, val, -1);
 	free(val);
+	gtk_text_buffer_insert(buffer_stats, &iter_stats, " bytes.\n", -1);
 	
+	/* Number of transactions */
+	val = (char *) malloc(sizeof(brif_stats.trans) + 2);
+	memset(val, '\0', sizeof(brif_stats.trans) + 2);
+	sprintf(val, "%d\n", brif_stats.trans);	
+	str_pad(fn, "Number of transactions:", flen, " ", PAD_RIGHT);
+	gtk_text_buffer_insert(buffer_stats, &iter_stats, fn, -1);
+	gtk_text_buffer_insert(buffer_stats, &iter_stats, val, -1);
+	free(val);
+
+	/* Number of sales */
+	val = (char *) malloc(sizeof(brif_stats.sales) + 2);
+	memset(val, '\0', sizeof(brif_stats.sales) + 2);
+	sprintf(val, "%d\n", brif_stats.sales);
+	str_pad(fn, "                 Sales:", flen, " ", PAD_RIGHT);
+	gtk_text_buffer_insert(buffer_stats, &iter_stats, fn, -1);
+	gtk_text_buffer_insert(buffer_stats, &iter_stats, val, -1);
+	free(val);
+
+	/* Number of credits */
+	val = (char *) malloc(sizeof(brif_stats.credits) + 2);
+	memset(val, '\0', sizeof(brif_stats.credits) + 2);
+	sprintf(val, "%d\n", brif_stats.credits);
+	str_pad(fn, "               Credits:", flen, " ", PAD_RIGHT);
+	gtk_text_buffer_insert(buffer_stats, &iter_stats, fn, -1);
+	gtk_text_buffer_insert(buffer_stats, &iter_stats, val, -1);
+	free(val);
+
+	/* Amount from main reocrd */
+	val = (char *) malloc(sizeof(brif_stats.amount) + 2);
+	memset(val, '\0', sizeof(brif_stats.amount) + 2);
+	sprintf(val, "%ld\n", brif_stats.amount);
+	str_pad(fn, "Amount (from main reocrd):", flen, " ", PAD_RIGHT);
+	gtk_text_buffer_insert(buffer_stats, &iter_stats, fn, -1);
+	gtk_text_buffer_insert(buffer_stats, &iter_stats, val, -1);
+	free(val);
 }
 
 static void do_main_record(char *fline)
@@ -450,10 +491,15 @@ static void read_file(char *fn)
 	char fline[301];
 	FILE *fp;
 	
+	struct stat st;
+
 	GtkTextBuffer *buffer;
 	GtkTextBuffer *buffer_raw;
 	GtkTextBuffer *buffer_stats;
 
+	/* Get file size */
+	stat(fn, &st);
+	brif_stats.file_size = st.st_size;
 	
 	/* Reset global counters and clear the text view */
 	line_no = 1;
@@ -680,7 +726,7 @@ int main(int argc, char *argv[])
 	 */
 	text_view_stats = gtk_text_view_new();
 	gtk_widget_show(text_view_stats);
-	/*gtk_container_add(GTK_CONTAINER(notebook), text_view_stats);*/
+	gtk_container_add(GTK_CONTAINER(notebook), text_view_stats);
 
 	gtk_text_view_set_editable(GTK_TEXT_VIEW(text_view_stats), FALSE);
 	gtk_text_view_set_cursor_visible(GTK_TEXT_VIEW(text_view_stats), FALSE);
@@ -712,6 +758,7 @@ int main(int argc, char *argv[])
 	font_desc = pango_font_description_from_string("Monospace");
 	gtk_widget_modify_font(text_view, font_desc);
 	gtk_widget_modify_font(text_view_raw, font_desc);
+	gtk_widget_modify_font(text_view_stats, font_desc);
 	pango_font_description_free(font_desc);
 
 
