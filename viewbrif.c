@@ -92,6 +92,7 @@ static double add_dp(long int amount)
 	char *na, *na2;
 	double da;
 
+
 	/* brif amount format */
 	na = (char *) malloc(sizeof(amount) + 1);
 	memset(na, '\0', sizeof(amount) + 1);
@@ -268,6 +269,7 @@ static void process_line(char *fline, int line_array[][2],
 
 	GtkTextBuffer *buffer;
 
+
 	buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text_view));
 	gtk_text_buffer_get_end_iter(buffer, &iter);
 
@@ -316,6 +318,7 @@ static void display_raw_line(char *fline, int line_array[][2])
 
 	GtkTextBuffer *buffer_raw;
 
+
 	buffer_raw = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text_view_raw));
 	gtk_text_buffer_get_end_iter(buffer_raw, &iter_raw);
 
@@ -351,6 +354,7 @@ static void gather_stats(char *fline, int line_array[][2])
 {
 	int fstart = 0, flen = 0;
 	char *data;
+
 
 	if (strncmp(fline + 1, "A", 1) == 0) {
 		brif_stats.trans++;
@@ -557,6 +561,7 @@ static void read_file(char *fn)
 	GtkTextBuffer *buffer;
 	GtkTextBuffer *buffer_raw;
 	GtkTextBuffer *buffer_stats;
+
 
 	/* Get file size */
 	stat(fn, &st);
