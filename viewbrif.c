@@ -24,7 +24,7 @@
 #include <gtk/gtk.h>
 
 /* Update for application version. */
-#define VERSION		"005.90"
+#define VERSION		"006"
 
 /*
  * DEBUG levels
@@ -72,6 +72,8 @@ struct stats brif_stats = {
 };
 
 
+
+static void reset_stats();
 static double add_dp(long int amount);
 static char *str_pad(char *newstr, char *str, int len, char *padchar, int just);
 static void create_tags(GtkTextBuffer *buffer);
@@ -90,6 +92,16 @@ static void do_purchasing_card(char *fline);
 static void do_purchasing_card_item(char *fline);
 static void read_file(char *fn);
 
+
+static void reset_stats()
+{
+	brif_stats.trans     = 0;
+	brif_stats.credits   = 0;
+	brif_stats.sales     = 0;
+	brif_stats.amount    = 0;
+	brif_stats.vat_ta    = 0;
+	brif_stats.file_size = 0;
+}
 
 static double add_dp(long int amount)
 {
@@ -578,13 +590,14 @@ static void read_file(char *fn)
 	GtkTextBuffer *buffer_stats;
 
 
-	/* Get file size */
-	stat(fn, &st);
-	brif_stats.file_size = st.st_size;
-	
 	/* Reset global counters and clear the text view */
 	line_no = 1;
 	line_pos = 0;
+	reset_stats();
+
+	/* Get file size */
+	stat(fn, &st);
+	brif_stats.file_size = st.st_size;
 	
 	/* Reset the text views */
 	gtk_text_view_set_buffer(GTK_TEXT_VIEW(text_view), NULL);
