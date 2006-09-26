@@ -24,7 +24,7 @@
 #include <gtk/gtk.h>
 
 /* Update for application version. */
-#define VERSION		"005"
+#define VERSION		"005.90"
 
 
 #define PAD_LEFT        0
@@ -64,7 +64,7 @@ struct stats brif_stats = {
 
 
 static double add_dp(long int amount);
-static void str_pad(char *newstr, char *str, int len, char *padchar, int just);
+static char *str_pad(char *newstr, char *str, int len, char *padchar, int just);
 static void create_tags(GtkTextBuffer *buffer);
 static void cb_about_window();
 static void cb_quit(GtkMenuItem *menuitem, gpointer user_data);
@@ -120,7 +120,7 @@ static double add_dp(long int amount)
 	return da;
 }
 
-static void str_pad(char *newstr, char *str, int len, char *padchar, int just)
+static char *str_pad(char *newstr, char *str, int len, char *padchar, int just)
 {
         char *padstr;
         int i, ppos;
@@ -154,6 +154,8 @@ static void str_pad(char *newstr, char *str, int len, char *padchar, int just)
                                                         str, padstr, newstr);*/
 
         free(padstr);
+
+	return newstr;
 }
 
 static void create_tags(GtkTextBuffer *buffer)
