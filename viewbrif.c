@@ -24,7 +24,7 @@
 #include <gtk/gtk.h>
 
 /* Update for application version. */
-#define VERSION		"006"
+#define VERSION		"006.90"
 
 /*
  * DEBUG levels
@@ -300,6 +300,8 @@ static void process_line(char *fline, int line_array[][2],
 	gtk_text_buffer_get_end_iter(buffer, &iter);
 
 
+	data = (char *) malloc(sizeof(char));
+
 	while (strncmp(fline + fstart, "\r\n", 2) != 0) {
                 fstart = line_array[i][0];
                 flen = line_array[i][1];
@@ -324,17 +326,17 @@ static void process_line(char *fline, int line_array[][2],
 		gtk_text_buffer_insert_with_tags_by_name(buffer, &iter, "] ",
                                                 -1, "blue_foreground", NULL);
 		
-		data = (char *) malloc(sizeof(char) * (flen  + 2));
-                memset(data, '\0', sizeof(char) * (flen  + 2));
-                strncpy(data, fline + fstart, flen);
-                strcat(data, "\n");
-                gtk_text_buffer_insert_with_tags_by_name(buffer, &iter, data, 
+		data = (char *) realloc(data, sizeof(char) * (flen  + 2));
+		memset(data, '\0', sizeof(char) * (flen  + 2));
+		strncpy(data, fline + fstart, flen);
+		strcat(data, "\n");
+		gtk_text_buffer_insert_with_tags_by_name(buffer, &iter, data, 
 						-1, "orange_background", NULL);
-                free(data);
-                line_pos += flen;
-                i++;
-        }
+		line_pos += flen;
+		i++;
+	}
 
+	free(data);
 	display_raw_line(fline, line_array);
 	gather_stats(fline, line_array);
 }
@@ -354,10 +356,12 @@ static void display_raw_line(char *fline, int line_array[][2])
  	gtk_text_buffer_insert_with_tags_by_name(buffer_raw, &iter_raw, ln, -1,
 						"lightblue_background", NULL);
 	
+	data = (char *) malloc(sizeof(char));
+
 	while (strncmp(fline + fstart, "\r\n", 2) != 0) {
 		fstart = line_array[i][0];
 		flen = line_array[i][1];
-		data = (char *) malloc(sizeof(char) * (flen  + 2));
+		data = (char *) realloc(data, sizeof(char) * (flen  + 2));
 		memset(data, '\0', sizeof(char) * (flen  + 2));
 		strncpy(data, fline + fstart, flen);		
 		
@@ -372,9 +376,10 @@ static void display_raw_line(char *fline, int line_array[][2])
 			color_flag = 0;
 		}
 	
-		free(data);	
 		i++;
 	}
+	
+	free(data);
 }
 
 static void gather_stats(char *fline, int line_array[][2])
@@ -382,6 +387,8 @@ static void gather_stats(char *fline, int line_array[][2])
 	int fstart = 0, flen = 0;
 	char *data;
 
+
+	data = (char *) malloc(sizeof(char));
 
 	if (strncmp(fline + 1, "A", 1) == 0) {
 		brif_stats.trans++;
@@ -393,23 +400,23 @@ static void gather_stats(char *fline, int line_array[][2])
 		
 		fstart = line_array[14][0];
 		flen = line_array[14][1];
-		data = (char *) malloc(sizeof(char) * (flen + 2));
+		data = (char *) realloc(data, sizeof(char) * (flen + 2));
 		memset(data, '\0', sizeof(char) * (flen  + 2));
-                strncpy(data, fline + fstart, flen);
+		strncpy(data, fline + fstart, flen);
 
 		brif_stats.amount += atoi(data);
-		free(data);
 	} else if (strncmp(fline + 2, "P", 1) == 0) {
 		fstart = line_array[5][0];
 		flen = line_array[5][1];
 	
-		data = (char *) malloc(sizeof(char) * (flen + 2));
+		data = (char *) realloc(data, sizeof(char) * (flen + 2));
 		memset(data, '\0', sizeof(char) * (flen  + 2));
 		strncpy(data, fline + fstart, flen);
-
+		
 		brif_stats.vat_ta += atoi(data);
-		free(data);
 	}
+	
+	free(data);
 }
 
 static void display_stats()
