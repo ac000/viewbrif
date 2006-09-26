@@ -26,6 +26,15 @@
 /* Update for application version. */
 #define VERSION		"005.90"
 
+/*
+ * DEBUG levels
+ * 0 NO DEBUG
+ * 1 Print stat debugging
+ * 2 also rint line lengths and which type of line is being processed
+ * 3 also lost of other stuff.  
+ */ 
+#define DEBUG		0
+
 
 #define PAD_LEFT        0
 #define PAD_RIGHT       1
@@ -112,7 +121,8 @@ static double add_dp(long int amount)
 
 	da = atof(na2);
         
-	printf("%f\t%s\t%s\n", da, na, na2);
+	if (DEBUG > 0)
+		printf("%f\t%s\t%s\n", da, na, na2);
 
 	free(na);
 	free(na2);
@@ -150,8 +160,10 @@ static char *str_pad(char *newstr, char *str, int len, char *padchar, int just)
                 strcpy(newstr, padstr);
         }
 
-        /*printf("Original string = %s, Pad string = %s, Padded String = %s\n",
-                                                        str, padstr, newstr);*/
+	if (DEBUG > 2) {
+        	printf("Original string = %s, Pad string = %s, "
+				"Padded String = %s\n", str, padstr, newstr);
+	}
 
         free(padstr);
 
@@ -283,7 +295,9 @@ static void process_line(char *fline, int line_array[][2],
 		sprintf(pos, "(%d, %d)", fstart + 1, flen);
 		sprintf(fnum, "F%d", i + 1);
 
-		/*printf("Field name = %s\n", field_headers[i]);*/
+		if (DEBUG > 2)
+			printf("Field name = %s\n", field_headers[i]);
+
                 sprintf(fname, "[ %s", field_headers[i]);
 		str_pad(pos, pos, 11, " ", PAD_RIGHT);
 		str_pad(fnum, fnum, 4, " ", PAD_RIGHT);
@@ -325,7 +339,6 @@ static void display_raw_line(char *fline, int line_array[][2])
 	gtk_text_buffer_get_end_iter(buffer_raw, &iter_raw);
 
 	sprintf(ln, "%-6d", line_no - 1);
-	/*str_pad(ln, line_no, 5, " ", PAD_RIGHT);*/
  	gtk_text_buffer_insert_with_tags_by_name(buffer_raw, &iter_raw, ln, -1,
 						"lightblue_background", NULL);
 	
@@ -389,7 +402,7 @@ static void gather_stats(char *fline, int line_array[][2])
 
 static void display_stats()
 {
-	char *val, fn[31], famount[21];
+	char *val, fn[31], famount[31];
 	int flen = 30;
 	double amnt = 0.0;
 
@@ -441,17 +454,17 @@ static void display_stats()
 
 	/* Amount from main record */
 	amnt = add_dp(brif_stats.amount);
-	strfmon(famount, sizeof(famount), "%=#8.2n\n", amnt);
+	strfmon(famount, sizeof(famount), "%=15n\n", amnt);
 	str_pad(fn, "Amount total", flen, " ", PAD_RIGHT);
 	gtk_text_buffer_insert(buffer_stats, &iter_stats, fn, -1);
 	gtk_text_buffer_insert(buffer_stats, &iter_stats, famount, -1);
-
+	
 	/* VAT transaction amount */
-        amnt = add_dp(brif_stats.vat_ta);
-        strfmon(famount, sizeof(famount), "%=#8.2n\n", amnt);
-        str_pad(fn, "VAT total", flen, " ", PAD_RIGHT);
-        gtk_text_buffer_insert(buffer_stats, &iter_stats, fn, -1);
-        gtk_text_buffer_insert(buffer_stats, &iter_stats, famount, -1);
+	amnt = add_dp(brif_stats.vat_ta);
+	str_pad(fn, "VAT total", flen, " ", PAD_RIGHT);
+	gtk_text_buffer_insert(buffer_stats, &iter_stats, fn, -1);
+	strfmon(famount, sizeof(famount), "%=15n", amnt);
+	gtk_text_buffer_insert(buffer_stats, &iter_stats, famount, -1);
 }
 
 static void do_main_record(char *fline)
@@ -606,17 +619,21 @@ static void read_file(char *fn)
 	
 	while (fgets(fline, 301, fp) != NULL) {
 		if (strncmp(fline + 1, "A", 1) == 0) {
-			printf("Doing main record line.\n");
+			if (DEBUG > 1)
+				printf("Doing main record line.\n");
                 	do_main_record(fline);	
 		} else if (strncmp(fline + 2, "P", 1) == 0) {
-			printf("Doing purchasing card line.\n");
+			if (DEBUG > 1)
+				printf("Doing purchasing card line.\n");
 			do_purchasing_card(fline);	
 		} else if (strncmp(fline + 2, "I", 1) == 0) {
-			printf("Doing purchasing card item line.\n");
+			if (DEBUG > 1)
+				printf("Doing purchasing card item line.\n");
 			do_purchasing_card_item(fline);
 		}
-	
-		printf("Line length = %d\n", line_pos);
+		
+		if (DEBUG > 1)	
+			printf("Line length = %d\n", line_pos);
 		line_pos = 0;
         }
 
