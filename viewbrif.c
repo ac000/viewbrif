@@ -24,7 +24,7 @@
 #include <gtk/gtk.h>
 
 /* Update for application version. */
-#define VERSION		"006.90"
+#define VERSION		"007"
 
 /*
  * DEBUG levels
@@ -120,8 +120,8 @@ static double add_dp(long int amount)
 	sprintf(na, "%ld", amount);
 
 	/* brif amount format with the dp added */
-	na2 = (char *) malloc(sizeof(na) + 1);
-	memset(na2, '\0', sizeof(na) + 1);
+	na2 = (char *) malloc(sizeof(na) + 2);
+	memset(na2, '\0', sizeof(na) + 2);
 
 	/* If we got less than 100p prepend a 0 to the value for strfmon() */
 	if (amount < 100)
@@ -300,7 +300,7 @@ static void process_line(char *fline, int line_array[][2],
 	gtk_text_buffer_get_end_iter(buffer, &iter);
 
 
-	data = (char *) malloc(sizeof(char));
+	data = (char *) malloc(sizeof(char) * 301);
 
 	while (strncmp(fline + fstart, "\r\n", 2) != 0) {
                 fstart = line_array[i][0];
@@ -326,8 +326,7 @@ static void process_line(char *fline, int line_array[][2],
 		gtk_text_buffer_insert_with_tags_by_name(buffer, &iter, "] ",
                                                 -1, "blue_foreground", NULL);
 		
-		data = (char *) realloc(data, sizeof(char) * (flen  + 2));
-		memset(data, '\0', sizeof(char) * (flen  + 2));
+		memset(data, '\0', sizeof(char) * 301);
 		strncpy(data, fline + fstart, flen);
 		strcat(data, "\n");
 		gtk_text_buffer_insert_with_tags_by_name(buffer, &iter, data, 
@@ -356,13 +355,12 @@ static void display_raw_line(char *fline, int line_array[][2])
  	gtk_text_buffer_insert_with_tags_by_name(buffer_raw, &iter_raw, ln, -1,
 						"lightblue_background", NULL);
 	
-	data = (char *) malloc(sizeof(char));
+	data = (char *) malloc(sizeof(char) * 301);
 
 	while (strncmp(fline + fstart, "\r\n", 2) != 0) {
 		fstart = line_array[i][0];
 		flen = line_array[i][1];
-		data = (char *) realloc(data, sizeof(char) * (flen  + 2));
-		memset(data, '\0', sizeof(char) * (flen  + 2));
+		memset(data, '\0', sizeof(char) * 301);
 		strncpy(data, fline + fstart, flen);		
 		
 		if (color_flag == 0) {
@@ -388,7 +386,8 @@ static void gather_stats(char *fline, int line_array[][2])
 	char *data;
 
 
-	data = (char *) malloc(sizeof(char));
+	data = (char *) malloc(sizeof(char) * 301);
+	memset(data, '\0', sizeof(char) * 301);
 
 	if (strncmp(fline + 1, "A", 1) == 0) {
 		brif_stats.trans++;
@@ -400,17 +399,12 @@ static void gather_stats(char *fline, int line_array[][2])
 		
 		fstart = line_array[14][0];
 		flen = line_array[14][1];
-		data = (char *) realloc(data, sizeof(char) * (flen + 2));
-		memset(data, '\0', sizeof(char) * (flen  + 2));
 		strncpy(data, fline + fstart, flen);
 
 		brif_stats.amount += atoi(data);
 	} else if (strncmp(fline + 2, "P", 1) == 0) {
 		fstart = line_array[5][0];
 		flen = line_array[5][1];
-	
-		data = (char *) realloc(data, sizeof(char) * (flen + 2));
-		memset(data, '\0', sizeof(char) * (flen  + 2));
 		strncpy(data, fline + fstart, flen);
 		
 		brif_stats.vat_ta += atoi(data);
@@ -641,19 +635,23 @@ static void read_file(char *fn)
 		if (strncmp(fline + 1, "A", 1) == 0) {
 			if (DEBUG > 1)
 				printf("Doing main record line.\n");
+
                 	do_main_record(fline);	
 		} else if (strncmp(fline + 2, "P", 1) == 0) {
 			if (DEBUG > 1)
 				printf("Doing purchasing card line.\n");
+
 			do_purchasing_card(fline);	
 		} else if (strncmp(fline + 2, "I", 1) == 0) {
 			if (DEBUG > 1)
 				printf("Doing purchasing card item line.\n");
+
 			do_purchasing_card_item(fline);
 		}
 		
 		if (DEBUG > 1)	
 			printf("Line length = %d\n", line_pos);
+
 		line_pos = 0;
         }
 

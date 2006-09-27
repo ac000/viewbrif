@@ -1,6 +1,12 @@
+viewbrif-007    2006-09-27      Andrew Clayton <andrew@pccl.info>
+
+	Bugfix release:
+	Fix an off by one in add_dp() that was causing an invlid free()
+
+
 viewbrif-006    2006-09-26      Andrew Clayton <andrew@pccl.info>
 
-        Reset stats on each file load.
+	Reset stats on each file load.
 
 
 viewbrif-005    2006-09-09      Andrew Clayton <andrew@pccl.info>
