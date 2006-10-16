@@ -12,11 +12,12 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
+#include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <unistd.h>
+#include <fcntl.h>
 #include <locale.h>
+#include <string.h>
 #include <monetary.h>
 
 
@@ -24,13 +25,13 @@
 #include <gtk/gtk.h>
 
 /* Update for application version. */
-#define VERSION		"007"
+#define VERSION		"008"
 
 /*
  * DEBUG levels
  * 0 NO DEBUG
  * 1 Print stat debugging
- * 2 also rint line lengths and which type of line is being processed
+ * 2 also print line lengths and which type of line is being processed
  * 3 also lost of other stuff.  
  */ 
 #define DEBUG		0
@@ -581,8 +582,8 @@ static void do_purchasing_card_item(char *fline)
 
 static void read_file(char *fn)
 {
-	char fline[301];
-	FILE *fp;
+	char fline[300];
+	int fd, len;
 	
 	struct stat st;
 
@@ -605,7 +606,9 @@ static void read_file(char *fn)
 	gtk_text_view_set_buffer(GTK_TEXT_VIEW(text_view_raw), NULL);
 	gtk_text_view_set_buffer(GTK_TEXT_VIEW(text_view_stats), NULL);
 
-	fp = fopen(fn, "r");
+	/* Open file RO and apply some fadvise hints */
+	fd = open(fn, O_RDONLY);
+	posix_fadvise(fd, 0, 0, POSIX_FADV_SEQUENTIAL);
 
 	/* Pretty print filename */
 	buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text_view));
@@ -631,7 +634,7 @@ static void read_file(char *fn)
 									NULL);
         gtk_text_buffer_insert(buffer, &iter, "\n\n", -1);
 	
-	while (fgets(fline, 301, fp) != NULL) {
+	while ((len = read(fd, fline, 300)) > 0) {
 		if (strncmp(fline + 1, "A", 1) == 0) {
 			if (DEBUG > 1)
 				printf("Doing main record line.\n");
@@ -655,7 +658,7 @@ static void read_file(char *fn)
 		line_pos = 0;
         }
 
-        fclose(fp);
+        close(fd);
 
 	display_stats();
 }
@@ -870,11 +873,11 @@ int main(int argc, char *argv[])
 
 	/* If we got a filename as an argument, open that up in the viewer. */
 	if (argc > 1)
-                read_file(argv[1]);
-	
+		read_file(argv[1]);
+
 
 	gtk_main();
 	
-	return 0;
+	exit(0);
 }
 

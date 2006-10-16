@@ -1,3 +1,9 @@
+viewbrif-008    2006-10-16      Andrew Clayton <andrew@pccl.info>
+
+	Maintenance release:
+	Convert program to open() from fopen()
+
+
 viewbrif-007    2006-09-27      Andrew Clayton <andrew@pccl.info>
 
 	Bugfix release:
