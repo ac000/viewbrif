@@ -25,7 +25,7 @@
 #include <gtk/gtk.h>
 
 /* Update for application version. */
-#define VERSION		"008"
+#define VERSION		"008.90"
 
 /*
  * DEBUG levels
@@ -223,6 +223,11 @@ static void cb_about_window()
 				"Copyright (C) 2006 Andrew Clayton");
 	gtk_about_dialog_set_authors(GTK_ABOUT_DIALOG(about), 
 						(const gchar **)&authors);
+
+	/* Connect the close_button to destroy the widget */
+	g_signal_connect(G_OBJECT(about), "response", 
+					G_CALLBACK(gtk_widget_destroy), NULL);
+
 	gtk_widget_show(about);
 }
 
