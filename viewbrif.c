@@ -19,20 +19,22 @@
 #include <locale.h>
 #include <string.h>
 #include <monetary.h>
+#include <ctype.h>
 
 
 #include <gdk/gdkkeysyms.h>
 #include <gtk/gtk.h>
 
 /* Update for application version. */
-#define VERSION		"008.90"
+#define VERSION		"009"
 
 /*
  * DEBUG levels
  * 0 NO DEBUG
  * 1 Print stat debugging
  * 2 also print line lengths and which type of line is being processed
- * 3 also lost of other stuff.  
+ * 3 Print line contents
+ * 4 also lots of other stuff.  
  */ 
 #define DEBUG		0
 
@@ -173,7 +175,7 @@ static char *str_pad(char *newstr, char *str, int len, char *padchar, int just)
                 strcpy(newstr, padstr);
         }
 
-	if (DEBUG > 2) {
+	if (DEBUG > 3) {
         	printf("Original string = %s, Pad string = %s, "
 				"Padded String = %s\n", str, padstr, newstr);
 	}
@@ -315,7 +317,7 @@ static void process_line(char *fline, int line_array[][2],
 		sprintf(pos, "(%d, %d)", fstart + 1, flen);
 		sprintf(fnum, "F%d", i + 1);
 
-		if (DEBUG > 2)
+		if (DEBUG > 3)
 			printf("Field name = %s\n", field_headers[i]);
 
                 sprintf(fname, "[ %s", field_headers[i]);
@@ -339,6 +341,9 @@ static void process_line(char *fline, int line_array[][2],
 						-1, "orange_background", NULL);
 		line_pos += flen;
 		i++;
+		
+		if (DEBUG > 2)
+			printf("Line: %s\n", data);
 	}
 
 	free(data);
@@ -640,6 +645,15 @@ static void read_file(char *fn)
         gtk_text_buffer_insert(buffer, &iter, "\n\n", -1);
 	
 	while ((len = read(fd, fline, 300)) > 0) {
+		if (DEBUG > 2)
+			printf("%c\n", (int)fline[0]);
+	
+		/* Catch non-printable characters, probably ctrl-z that
+		 * has been added to the end of the end of the file by pceft
+		 */	
+		if (!isprint((int)fline[0]))
+			continue;
+		
 		if (strncmp(fline + 1, "A", 1) == 0) {
 			if (DEBUG > 1)
 				printf("Doing main record line.\n");
@@ -653,7 +667,7 @@ static void read_file(char *fn)
 		} else if (strncmp(fline + 2, "I", 1) == 0) {
 			if (DEBUG > 1)
 				printf("Doing purchasing card item line.\n");
-
+			
 			do_purchasing_card_item(fline);
 		}
 		

@@ -1,3 +1,9 @@
+viewbrif-009	2007-04-10	Andrew Clayton <andrew@pccl.info>
+
+	* Fix a bug that was causing the last transaction to be displayed twice 
+	due to a ctrl-z being at the end of the .ans files.
+	* Add another debug entry.
+ 
 viewbrif-008    2006-10-16      Andrew Clayton <andrew@pccl.info>
 
 	Maintenance release:
