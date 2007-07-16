@@ -26,7 +26,7 @@
 #include <gtk/gtk.h>
 
 /* Update for application version. */
-#define VERSION		"009"
+#define VERSION		"009.90"
 
 /*
  * DEBUG levels
@@ -647,9 +647,10 @@ static void read_file(char *fn)
 	while ((len = read(fd, fline, 300)) > 0) {
 		if (DEBUG > 2)
 			printf("%c\n", (int)fline[0]);
-	
-		/* Catch non-printable characters, probably ctrl-z that
-		 * has been added to the end of the end of the file by pceft
+
+		/*	
+		 * Catch non-printable characters, probably ctrl-z that
+		 * has been added to the end of the file by pceft
 		 */	
 		if (!isprint((int)fline[0]))
 			continue;
