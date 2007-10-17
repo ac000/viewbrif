@@ -13,6 +13,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <sys/mman.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -26,7 +27,7 @@
 #include <gtk/gtk.h>
 
 /* Update for application version. */
-#define VERSION		"009.90"
+#define VERSION		"010"
 
 /*
  * DEBUG levels
@@ -593,8 +594,9 @@ static void do_purchasing_card_item(char *fline)
 static void read_file(char *fn)
 {
 	char fline[300];
-	int fd, len;
-	
+	char *bf_map;
+	int fd;
+	int offset = 0;	
 	struct stat st;
 
 	GtkTextBuffer *buffer;
@@ -619,7 +621,7 @@ static void read_file(char *fn)
 	/* Open file RO and apply some fadvise hints */
 	fd = open(fn, O_RDONLY);
 	posix_fadvise(fd, 0, 0, POSIX_FADV_SEQUENTIAL);
-
+	
 	/* Pretty print filename */
 	buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text_view));
 	gtk_text_buffer_get_start_iter(buffer, &iter);
@@ -643,46 +645,56 @@ static void read_file(char *fn)
 						"blue_foreground", "bold",
 									NULL);
         gtk_text_buffer_insert(buffer, &iter, "\n\n", -1);
-	
-	while ((len = read(fd, fline, 300)) > 0) {
+
+	bf_map = mmap(0, st.st_size, PROT_READ, MAP_SHARED, fd, 0);
+	if (bf_map == MAP_FAILED) {
+		printf("mmap() failed.\n");
+		close(fd);
+		exit(1);
+	} 
+
+	close(fd);
+
+	while (offset < st.st_size) {
+		memcpy(fline, bf_map + offset, 300);
+		offset += 300;
 		if (DEBUG > 2)
 			printf("%c\n", (int)fline[0]);
 
-		/*	
+		/*      
 		 * Catch non-printable characters, probably ctrl-z that
 		 * has been added to the end of the file by pceft
-		 */	
+		 */
 		if (!isprint((int)fline[0]))
 			continue;
-		
+
 		if (strncmp(fline + 1, "A", 1) == 0) {
 			if (DEBUG > 1)
 				printf("Doing main record line.\n");
 
-                	do_main_record(fline);	
+			do_main_record(fline);
 		} else if (strncmp(fline + 2, "P", 1) == 0) {
 			if (DEBUG > 1)
 				printf("Doing purchasing card line.\n");
 
-			do_purchasing_card(fline);	
+			do_purchasing_card(fline);
 		} else if (strncmp(fline + 2, "I", 1) == 0) {
 			if (DEBUG > 1)
 				printf("Doing purchasing card item line.\n");
-			
+
 			do_purchasing_card_item(fline);
 		}
-		
-		if (DEBUG > 1)	
+
+		if (DEBUG > 1)
 			printf("Line length = %d\n", line_pos);
 
 		line_pos = 0;
         }
-
-        close(fd);
-
+	
 	display_stats();
+	
+	munmap(bf_map, st.st_size);
 }
-
 
 int main(int argc, char *argv[])
 {
