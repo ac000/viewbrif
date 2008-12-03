@@ -27,7 +27,7 @@
 #include <gtk/gtk.h>
 
 /* Update for application version. */
-#define VERSION		"010"
+#define VERSION		"011"
 
 /*
  * DEBUG levels
@@ -613,6 +613,14 @@ static void read_file(char *fn)
 	stat(fn, &st);
 	brif_stats.file_size = st.st_size;
 	
+
+	if ((st.st_size % 300) != 0) {
+		printf("ERROR: File size (%lu) is not a multiple of 300.\n", 
+								st.st_size);
+		exit(1);
+	}
+		
+
 	/* Reset the text views */
 	gtk_text_view_set_buffer(GTK_TEXT_VIEW(text_view), NULL);
 	gtk_text_view_set_buffer(GTK_TEXT_VIEW(text_view_raw), NULL);
