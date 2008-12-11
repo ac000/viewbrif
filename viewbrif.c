@@ -27,7 +27,7 @@
 #include <gtk/gtk.h>
 
 /* Update for application version. */
-#define VERSION		"011a"
+#define VERSION		"012"
 
 /*
  * DEBUG levels
@@ -595,6 +595,7 @@ static void read_file(char *fn)
 {
 	char fline[300];
 	char *bf_map;
+	char emesg[255];
 	int fd;
 	int offset = 0;	
 	struct stat st;
@@ -613,26 +614,11 @@ static void read_file(char *fn)
 	stat(fn, &st);
 	brif_stats.file_size = st.st_size;
 	
-
-	if ((st.st_size % 300) != 0) {
-		printf("ERROR: File size (%lu) is not a multiple of 300.\n", 
-								st.st_size);
-		exit(1);
-	} else if (st.st_size == 0) {
-		printf("ERROR: File seems to be empty.\n");
-		exit(1);
-	}
-
-
 	/* Reset the text views */
 	gtk_text_view_set_buffer(GTK_TEXT_VIEW(text_view), NULL);
 	gtk_text_view_set_buffer(GTK_TEXT_VIEW(text_view_raw), NULL);
 	gtk_text_view_set_buffer(GTK_TEXT_VIEW(text_view_stats), NULL);
 
-	/* Open file RO and apply some fadvise hints */
-	fd = open(fn, O_RDONLY);
-	posix_fadvise(fd, 0, 0, POSIX_FADV_SEQUENTIAL);
-	
 	/* Pretty print filename */
 	buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text_view));
 	gtk_text_buffer_get_start_iter(buffer, &iter);
@@ -650,12 +636,37 @@ static void read_file(char *fn)
 	create_tags(buffer_raw);
 	create_tags(buffer_stats);
 
+	/*
+	 * If the file size is NOT a multiple of 300 or is 0 size, 
+	 * don't read it in. Instead display an error message to 
+	 * the user.
+ 	 */ 
+	if ((st.st_size % 300) != 0) {
+		sprintf(emesg, 
+		"ERROR: Size (%lu) of file (%s) is not a multiple of 300.", 
+								st.st_size, fn);
+		printf("%s\n", emesg);
+		gtk_text_buffer_insert_with_tags_by_name(buffer, &iter,
+						emesg, -1, "bold", NULL);
+		return;
+	} else if (st.st_size == 0) {
+		sprintf(emesg, "ERROR: File (%s) seems to be empty.", fn);
+		printf("%s\n", emesg);
+		gtk_text_buffer_insert_with_tags_by_name(buffer, &iter,
+						emesg, -1, "bold", NULL);
+		return;
+	}
+
+	/* Open file RO and apply some fadvise hints */
+	fd = open(fn, O_RDONLY);
+	posix_fadvise(fd, 0, 0, POSIX_FADV_SEQUENTIAL);
+
+
 	gtk_text_buffer_insert_with_tags_by_name(buffer, &iter, 
 					"Displaying file: ", -1, "bold", NULL);
-        gtk_text_buffer_insert_with_tags_by_name(buffer, &iter, fn, -1, 
-						"blue_foreground", "bold",
-									NULL);
-        gtk_text_buffer_insert(buffer, &iter, "\n\n", -1);
+	gtk_text_buffer_insert_with_tags_by_name(buffer, &iter, fn, -1, 
+					"blue_foreground", "bold", NULL);
+	gtk_text_buffer_insert(buffer, &iter, "\n\n", -1);
 
 	bf_map = mmap(0, st.st_size, PROT_READ, MAP_SHARED, fd, 0);
 	if (bf_map == MAP_FAILED) {
