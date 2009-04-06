@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=ViewBRIF
+Comment=GUI BRIF File Viewer
+Exec=viewbrif
+TryExec=viewbrif
+Icon=stock_script.png
+Terminal=false
+Type=Application
+Categories=Application;Utility;
+
