@@ -8,7 +8,7 @@
  * Released under the General Public License (GPL) version 2.
  * See COPYING
  *
- * /
+ */
 
 
 #include <stdio.h>
