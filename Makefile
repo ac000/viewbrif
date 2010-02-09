@@ -6,5 +6,5 @@ debug: viewbrif.c
 	gcc -Wall -g viewbrif.c -o viewbrif `pkg-config --cflags gtk+-2.0` `pkg-config --libs gtk+-2.0`
 
 clean:
-	rm viewbrif
+	rm viewbrif viewbrif.1.gz
 
