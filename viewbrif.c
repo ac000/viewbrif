@@ -27,7 +27,7 @@
 #include <gtk/gtk.h>
 
 /* Update for application version. */
-#define VERSION		"012"
+#define VERSION		"013"
 
 /*
  * DEBUG levels
@@ -62,6 +62,8 @@ struct stats {
 	int credits;
 	int sales;
 	long int amount;
+	long int sales_amt;
+	long int credits_amt;
 	long int vat_ta;
 	long int file_size;
 };
@@ -70,6 +72,8 @@ struct stats brif_stats = {
 	0, 
 	0, 
 	0, 
+	0,
+	0,
 	0,
 	0,
 	0
@@ -99,12 +103,14 @@ static void read_file(char *fn);
 
 static void reset_stats()
 {
-	brif_stats.trans     = 0;
-	brif_stats.credits   = 0;
-	brif_stats.sales     = 0;
-	brif_stats.amount    = 0;
-	brif_stats.vat_ta    = 0;
-	brif_stats.file_size = 0;
+	brif_stats.trans       = 0;
+	brif_stats.credits     = 0;
+	brif_stats.sales       = 0;
+	brif_stats.amount      = 0;
+	brif_stats.sales_amt   = 0;
+	brif_stats.credits_amt = 0;
+	brif_stats.vat_ta      = 0;
+	brif_stats.file_size   = 0;
 }
 
 static double add_dp(long int amount)
@@ -214,7 +220,8 @@ static void cb_about_window()
 {
 	GtkWidget *about;
 	
-	const gchar *authors[2] = { "Andrew Clayton <andrew@pccl.info>", 
+	const gchar *authors[2] = { "Andrew Clayton <andrew@pccl.info>\n"
+				"Graham Thomson <g.thomson@pccl.co.uk>",
 							(const char*)NULL };
 
 	about = gtk_about_dialog_new();
@@ -223,7 +230,7 @@ static void cb_about_window()
 	gtk_about_dialog_set_name(GTK_ABOUT_DIALOG(about), "ViewBRIF");
 	gtk_about_dialog_set_version(GTK_ABOUT_DIALOG(about), VERSION);
 	gtk_about_dialog_set_copyright(GTK_ABOUT_DIALOG(about), 
-				"Copyright (C) 2006 Andrew Clayton");
+				"Copyright (C) 2006-2010 Andrew Clayton");
 	gtk_about_dialog_set_authors(GTK_ABOUT_DIALOG(about), 
 						(const gchar **)&authors);
 
@@ -397,39 +404,43 @@ static void gather_stats(char *fline, int line_array[][2])
 	int fstart = 0, flen = 0;
 	char *data;
 
-
 	data = (char *) malloc(sizeof(char) * 301);
 	memset(data, '\0', sizeof(char) * 301);
 
 	if (strncmp(fline + 1, "A", 1) == 0) {
 		brif_stats.trans++;
-		
-		if (strncmp(fline + 2, "S", 1) == 0)
-			brif_stats.sales++;
-		if (strncmp(fline + 2, "R", 1) == 0)
-			brif_stats.credits++;
-		
+
 		fstart = line_array[14][0];
 		flen = line_array[14][1];
 		strncpy(data, fline + fstart, flen);
 
-		brif_stats.amount += atoi(data);
+		if (strncmp(fline + 2, "S", 1) == 0) {
+			brif_stats.sales++;
+			brif_stats.amount += atoi(data);
+			brif_stats.sales_amt += atoi(data);
+		}
+
+		if (strncmp(fline + 2, "R", 1) == 0) {
+			brif_stats.credits++;
+			brif_stats.amount -= atoi(data);
+			brif_stats.credits_amt += atoi(data);
+		}
 	} else if (strncmp(fline + 2, "P", 1) == 0) {
 		fstart = line_array[5][0];
 		flen = line_array[5][1];
 		strncpy(data, fline + fstart, flen);
-		
+
 		brif_stats.vat_ta += atoi(data);
 	}
-	
+
 	free(data);
 }
 
 static void display_stats()
 {
-	char *val, fn[31], famount[31];
+	char *val, fn[31], famount[31], samount[31], camount[31];
 	int flen = 30;
-	double amnt = 0.0;
+	double amnt = 0.0, samnt = 0.0, camnt = 0.0;
 
 	GtkTextBuffer *buffer_stats;
 
@@ -453,7 +464,7 @@ static void display_stats()
 	/* Number of transactions */
 	val = (char *) malloc(sizeof(brif_stats.trans) + 2);
 	memset(val, '\0', sizeof(brif_stats.trans) + 2);
-	sprintf(val, "%d\n", brif_stats.trans);	
+	sprintf(val, "%d\n\n", brif_stats.trans);
 	str_pad(fn, "Number of transactions", flen, " ", PAD_RIGHT);
 	gtk_text_buffer_insert(buffer_stats, &iter_stats, fn, -1);
 	gtk_text_buffer_insert(buffer_stats, &iter_stats, val, -1);
@@ -467,20 +478,30 @@ static void display_stats()
 	gtk_text_buffer_insert(buffer_stats, &iter_stats, fn, -1);
 	gtk_text_buffer_insert(buffer_stats, &iter_stats, val, -1);
 	free(val);
+	samnt = add_dp(brif_stats.sales_amt);
+	strfmon(samount, sizeof(samount), "%=15n\n\n", samnt);
+	str_pad(fn, "           Sales total", flen, " ", PAD_RIGHT);
+	gtk_text_buffer_insert(buffer_stats, &iter_stats, fn, -1);
+	gtk_text_buffer_insert(buffer_stats, &iter_stats, samount, -1);
 
 	/* Number of credits */
 	val = (char *) malloc(sizeof(brif_stats.credits) + 3);
 	memset(val, '\0', sizeof(brif_stats.credits) + 3);
-	sprintf(val, "%d\n\n", brif_stats.credits);
+	sprintf(val, "%d\n", brif_stats.credits);
 	str_pad(fn, "               Credits", flen, " ", PAD_RIGHT);
 	gtk_text_buffer_insert(buffer_stats, &iter_stats, fn, -1);
 	gtk_text_buffer_insert(buffer_stats, &iter_stats, val, -1);
 	free(val);
+	camnt = add_dp(brif_stats.credits_amt);
+	strfmon(camount, sizeof(camount), "-%=15n\n\n", camnt);
+	str_pad(fn, "         Credits total", flen, " ", PAD_RIGHT);
+	gtk_text_buffer_insert(buffer_stats, &iter_stats, fn, -1);
+	gtk_text_buffer_insert(buffer_stats, &iter_stats, camount, -1);
 
 	/* Amount from main record */
 	amnt = add_dp(brif_stats.amount);
 	strfmon(famount, sizeof(famount), "%=15n\n", amnt);
-	str_pad(fn, "Amount total", flen, " ", PAD_RIGHT);
+	str_pad(fn, "File total", flen, " ", PAD_RIGHT);
 	gtk_text_buffer_insert(buffer_stats, &iter_stats, fn, -1);
 	gtk_text_buffer_insert(buffer_stats, &iter_stats, famount, -1);
 	
