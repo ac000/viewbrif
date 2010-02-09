@@ -1,12 +1,12 @@
 Summary:	GUI BRIF File Viewer
 Name:		viewbrif
-Version:	012
-Release:	5.pccl%{?dist}
-Group:          Development/Tools
-License: 	BSD
+Version:	013
+Release:	0.pccl%{?dist}
+Group:		Development/Tools
+License:	GPLv2
 Vendor:		PCCL
 Packager:	Andrew Clayton <andrew@pccl.info>
-Url:		http://wiki.systems.int.pccl/mediawiki/index.php/ViewBRIF
+Url:		http://wiki.systems.pccl.info/mediawiki/index.php/ViewBRIF
 Source0:	viewbrif-%{version}.tar
 BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-root
 
@@ -23,7 +23,7 @@ make
 rm -rf $RPM_BUILD_ROOT
 install -Dp -m0755 viewbrif $RPM_BUILD_ROOT/usr/bin/viewbrif
 install -Dp -m0644 viewbrif.1.gz $RPM_BUILD_ROOT/usr/share/man/man1/viewbrif.1.gz
-install -Dp -m0644 viewbrif.desktop $RPM_BUILD_ROOT/usr/share/applications/viewbrif.dektop
+install -Dp -m0644 viewbrif.desktop $RPM_BUILD_ROOT/usr/share/applications/viewbrif.desktop
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -32,9 +32,12 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(-,root,root)
 /usr/bin/viewbrif
 /usr/share/man/man1/viewbrif.1.gz
-/usr/share/applications/viewbrif.dektop
+/usr/share/applications/viewbrif.desktop
 
 %changelog
+* Tue Feb 09 2010 Andrew Clayton <andrew@pccl.info> - 013-0.pccl
+- Update for new version.
+
 * Mon Apr 06 2009 Andrew Clayton <andrew@pccl.info> - 012-4.pccl
 - Fix URL in specfile.
 

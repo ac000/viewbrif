@@ -3,11 +3,12 @@
  *
  * A GUI BRIF file viewer
  *
- * Copyright (C) 2006, Andrew Clayton
+ * Copyright (C) 2006-2010, Andrew Clayton <andrew@pccl.info>
  *
- * September 6th 2006
- *	andrew@pccl.info
- */
+ * Released under the General Public License (GPL) version 2.
+ * See COPYING
+ *
+ * /
 
 
 #include <stdio.h>
