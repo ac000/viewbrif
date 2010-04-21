@@ -23,7 +23,6 @@
 #include <monetary.h>
 #include <ctype.h>
 
-
 #include <gdk/gdkkeysyms.h>
 #include <gtk/gtk.h>
 
@@ -40,11 +39,9 @@
  */ 
 #define DEBUG		0
 
-
 #define PAD_LEFT        0
 #define PAD_RIGHT       1
 #define PAD_CENT        2
-
 
 int line_no = 1;
 int line_pos = 0;
@@ -55,7 +52,6 @@ GtkWidget *text_view_stats;
 GtkTextIter iter;
 GtkTextIter iter_raw;
 GtkTextIter iter_stats;
-
 
 /* Structure to hold brif file stats */
 struct stats {
@@ -80,8 +76,6 @@ struct stats brif_stats = {
 	0
 };
 
-
-
 static void reset_stats();
 static double add_dp(long int amount);
 static char *str_pad(char *newstr, char *str, int len, char *padchar, int just);
@@ -100,7 +94,6 @@ static void do_main_record(char *fline);
 static void do_purchasing_card(char *fline);
 static void do_purchasing_card_item(char *fline);
 static void read_file(char *fn);
-
 
 static void reset_stats()
 {
@@ -124,14 +117,13 @@ static double add_dp(long int amount)
 	char *na, *na2;
 	double da;
 
-
 	/* brif amount format */
-	na = (char *) malloc(sizeof(amount) + 1);
+	na = (char *)malloc(sizeof(amount) + 1);
 	memset(na, '\0', sizeof(amount) + 1);
 	sprintf(na, "%ld", amount);
 
 	/* brif amount format with the dp added */
-	na2 = (char *) malloc(sizeof(na) + 2);
+	na2 = (char *)malloc(sizeof(na) + 2);
 	memset(na2, '\0', sizeof(na) + 2);
 
 	/* If we got less than 100p prepend a 0 to the value for strfmon() */
@@ -157,10 +149,9 @@ static char *str_pad(char *newstr, char *str, int len, char *padchar, int just)
 {
         char *padstr;
         int i, ppos;
-
         
 	if (just == PAD_LEFT || just == PAD_RIGHT) {
-                padstr = (char *) malloc(sizeof(char) * (len - strlen(str))
+                padstr = (char *)malloc(sizeof(char) * (len - strlen(str))
                                                                         + 1);
                 memset(padstr, '\0', sizeof(char) * (len - strlen(str)) + 1);
 
@@ -172,7 +163,7 @@ static char *str_pad(char *newstr, char *str, int len, char *padchar, int just)
                 else if (just == PAD_RIGHT)
                         sprintf(newstr, "%s%s", str, padstr);
         } else if (just == PAD_CENT) {
-                padstr = (char *) malloc(sizeof(char) * len + 1);
+                padstr = (char *)malloc(sizeof(char) * len + 1);
                 memset(padstr, '\0', sizeof(char) * len + 1);
 
                 for (i = 0; i < len; i++)
@@ -247,9 +238,8 @@ static void cb_file_selected(GtkWidget *w, GtkFileSelection *fs)
 	char *fpath;
 	int len = 0;
 	
-
 	len = strlen(gtk_file_selection_get_filename(GTK_FILE_SELECTION(fs)));
-	fpath = (char *) malloc(sizeof(char) * (len + 1));
+	fpath = (char *)malloc(sizeof(char) * (len + 1));
 	memset(fpath, '\0', sizeof(char) * (len + 1));
 	strcpy(fpath, gtk_file_selection_get_filename(GTK_FILE_SELECTION(fs)));
 
@@ -312,12 +302,11 @@ static void process_line(char *fline, int line_array[][2],
 
 	GtkTextBuffer *buffer;
 
-
 	buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text_view));
 	gtk_text_buffer_get_end_iter(buffer, &iter);
 
 
-	data = (char *) malloc(sizeof(char) * 301);
+	data = (char *)malloc(sizeof(char) * 301);
 
 	while (strncmp(fline + fstart, "\r\n", 2) != 0) {
                 fstart = line_array[i][0];
@@ -367,7 +356,6 @@ static void display_raw_line(char *fline, int line_array[][2])
 
 	GtkTextBuffer *buffer_raw;
 
-
 	buffer_raw = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text_view_raw));
 	gtk_text_buffer_get_end_iter(buffer_raw, &iter_raw);
 
@@ -375,7 +363,7 @@ static void display_raw_line(char *fline, int line_array[][2])
  	gtk_text_buffer_insert_with_tags_by_name(buffer_raw, &iter_raw, ln, -1,
 						"lightblue_background", NULL);
 	
-	data = (char *) malloc(sizeof(char) * 301);
+	data = (char *)malloc(sizeof(char) * 301);
 
 	while (strncmp(fline + fstart, "\r\n", 2) != 0) {
 		fstart = line_array[i][0];
@@ -405,7 +393,7 @@ static void gather_stats(char *fline, int line_array[][2])
 	int fstart = 0, flen = 0;
 	char *data;
 
-	data = (char *) malloc(sizeof(char) * 301);
+	data = (char *)malloc(sizeof(char) * 301);
 	memset(data, '\0', sizeof(char) * 301);
 
 	if (strncmp(fline + 1, "A", 1) == 0) {
@@ -453,7 +441,7 @@ static void display_stats()
 	gtk_text_buffer_get_end_iter(buffer_stats, &iter_stats);	
 
 	/* File Size */
-	val = (char *) malloc(sizeof(brif_stats.file_size) + 1);
+	val = (char *)malloc(sizeof(brif_stats.file_size) + 1);
 	memset(val, '\0', sizeof(brif_stats.file_size) + 1);
 	sprintf(val, "%ld", brif_stats.file_size);
 	str_pad(fn, "File size", flen, " ", PAD_RIGHT); 	
@@ -463,7 +451,7 @@ static void display_stats()
 	gtk_text_buffer_insert(buffer_stats, &iter_stats, " bytes\n\n", -1);
 	
 	/* Number of transactions */
-	val = (char *) malloc(sizeof(brif_stats.trans) + 2);
+	val = (char *)malloc(sizeof(brif_stats.trans) + 2);
 	memset(val, '\0', sizeof(brif_stats.trans) + 2);
 	sprintf(val, "%d\n\n", brif_stats.trans);
 	str_pad(fn, "Number of transactions", flen, " ", PAD_RIGHT);
@@ -472,7 +460,7 @@ static void display_stats()
 	free(val);
 
 	/* Number of sales */
-	val = (char *) malloc(sizeof(brif_stats.sales) + 2);
+	val = (char *)malloc(sizeof(brif_stats.sales) + 2);
 	memset(val, '\0', sizeof(brif_stats.sales) + 2);
 	sprintf(val, "%d\n", brif_stats.sales);
 	str_pad(fn, "                 Sales", flen, " ", PAD_RIGHT);
@@ -486,7 +474,7 @@ static void display_stats()
 	gtk_text_buffer_insert(buffer_stats, &iter_stats, samount, -1);
 
 	/* Number of credits */
-	val = (char *) malloc(sizeof(brif_stats.credits) + 3);
+	val = (char *)malloc(sizeof(brif_stats.credits) + 3);
 	memset(val, '\0', sizeof(brif_stats.credits) + 3);
 	sprintf(val, "%d\n", brif_stats.credits);
 	str_pad(fn, "               Credits", flen, " ", PAD_RIGHT);
@@ -526,7 +514,6 @@ static void do_main_record(char *fline)
 			"RESERVED", "Card Scheme Code", "Network Terminal No.",
 			"Transaction Number", "Status", "Auth Code", 
 			"Error No.", "Error/Auth Message", "CRLF" };
-
 	int mrl[31][2] = { {0, 1}, {1, 1}, {2, 1}, {3, 1}, {4, 1},
                         {5, 8}, {13, 6}, {19, 15}, {34, 8}, {42, 1},
                         {43, 19}, {62, 4}, {66, 4}, {70, 2}, {72, 12},
@@ -534,19 +521,15 @@ static void do_main_record(char *fline)
                         {165, 1}, {166, 8}, {174, 9}, {183, 3}, {186, 4},
                         {190, 11}, {201, 1}, {202, 8}, {210, 4}, {214, 84},
                         {298, 2} };
-
 	char hline[35];
-
 	GtkTextBuffer *buffer;
-
 
 	sprintf(hline, "Line no: %d, Main Record\n", line_no++);
 	buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text_view));
 	gtk_text_buffer_get_end_iter(buffer, &iter);
 	gtk_text_buffer_insert_with_tags_by_name(buffer, &iter, hline, -1,
 						"green_foreground", NULL);
-	
-	
+
 	process_line(fline, mrl, mrn);
 }
 
@@ -562,7 +545,6 @@ static void do_purchasing_card(char *fline)
 			"Customer Account No.", "Invoice No.", 
 			"Original Invoice No.", "Cost Centre", 
 			"Total Items Amount", "Filler", "CRLF" };
-
 	int pcl[24][2] = { {0, 1}, {1, 1}, {2, 1}, {3, 1}, {4, 1},
                         {5, 12}, {17, 13}, {30, 12}, {42, 8}, {50, 12},
                         {62, 12}, {74, 10}, {84, 10}, {94, 3}, {97, 4},
@@ -570,16 +552,14 @@ static void do_purchasing_card(char *fline)
                         {164, 20}, {184, 12}, {196, 102}, {298, 2} };
 	
 	char hline[35];
-	
 	GtkTextBuffer *buffer;
-
 
 	sprintf(hline, "Line no: %d, Purchasing Card\n", line_no++);
         buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text_view));
 	gtk_text_buffer_get_end_iter(buffer, &iter);
         gtk_text_buffer_insert_with_tags_by_name(buffer, &iter, hline, -1,
                                                 "green_foreground", NULL);
-	
+
 	process_line(fline, pcl, pcln);
 }
 
@@ -592,7 +572,6 @@ static void do_purchasing_card_item(char *fline)
 			"Product Code", "Line VAT Amount", "Line Total Amount",
 			"VAT Rate Type", "Original Line Total Amount", 
 			"Debit/Credit", "Filler", "CRLF" };
-
 	int pcil[21][2] = { {0, 1}, {1, 1}, {2, 1}, {3, 1}, {4, 1},
                         {5, 3}, {8, 12}, {20, 12}, {32, 15}, {47, 40},
                         {87, 12}, {99, 4}, {103, 12}, {115, 12}, {127, 12},
@@ -600,9 +579,7 @@ static void do_purchasing_card_item(char *fline)
                         {298, 2} };
 
 	char hline[35];
-
         GtkTextBuffer *buffer;
-
 
 	sprintf(hline, "Line no: %d, Purchasing Card Item\n", line_no++);
 	buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text_view));
@@ -625,7 +602,6 @@ static void read_file(char *fn)
 	GtkTextBuffer *buffer;
 	GtkTextBuffer *buffer_raw;
 	GtkTextBuffer *buffer_stats;
-
 
 	/* Reset global counters and clear the text view */
 	line_no = 1;
@@ -763,10 +739,8 @@ int main(int argc, char *argv[])
 	GtkAccelGroup *accel_group;
 	PangoFontDescription *font_desc;
 
-
 	gtk_init(&argc, &argv);
     
-
 	accel_group = gtk_accel_group_new();
 
 	/* Main window */
@@ -776,13 +750,11 @@ int main(int argc, char *argv[])
   	gtk_window_set_title(GTK_WINDOW(window), "ViewBRIF");	
 	gtk_container_set_border_width(GTK_CONTAINER(window), 0);
     	gtk_widget_set_size_request(window, 700, 800);
-
 	
 	/* vbox to hold stuff */
 	vbox = gtk_vbox_new(FALSE, 0);
 	gtk_widget_show(vbox);
 	gtk_container_add(GTK_CONTAINER(window), vbox);
-
 
 	/* Create the menubar */
 	menubar = gtk_menu_bar_new();
@@ -833,14 +805,12 @@ int main(int argc, char *argv[])
         gtk_widget_show(helpmenu_about);
         gtk_container_add(GTK_CONTAINER(helpmenu_menu), helpmenu_about);
 
-	
 	/* Create a notebook */
         notebook = gtk_notebook_new();
 	gtk_notebook_set_tab_pos(GTK_NOTEBOOK(notebook), GTK_POS_TOP);
 	gtk_widget_show(notebook);
 	gtk_box_pack_start(GTK_BOX(vbox), notebook, TRUE, TRUE, 0);
 	gtk_container_set_border_width(GTK_CONTAINER(notebook), 10);
-	
 	
 	/* Create a new scrolled window for the split view. */
 	scrolled_window = gtk_scrolled_window_new(NULL, NULL);
@@ -857,7 +827,6 @@ int main(int argc, char *argv[])
 	 */
 	gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scrolled_window),
 				GTK_POLICY_AUTOMATIC, GTK_POLICY_ALWAYS);
-	
 
 	/* 
 	 * Create a text view for the split view and set it RO with 
@@ -869,10 +838,9 @@ int main(int argc, char *argv[])
 
 	gtk_text_view_set_editable(GTK_TEXT_VIEW(text_view), FALSE);
 	gtk_text_view_set_cursor_visible(GTK_TEXT_VIEW(text_view), FALSE);
-	
+
 	gtk_window_add_accel_group(GTK_WINDOW(window), accel_group);		
 
-	
 	/* Create a new scrolled window for the raw view. */
         scrolled_window_raw = gtk_scrolled_window_new(NULL, NULL);
         gtk_widget_show(scrolled_window_raw);
@@ -889,7 +857,6 @@ int main(int argc, char *argv[])
         gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scrolled_window_raw),
                                 GTK_POLICY_AUTOMATIC, GTK_POLICY_ALWAYS);
 
-
 	/*
 	 * Create a text view for the raw view and set it RO with
 	 * invisible cursor.
@@ -901,7 +868,6 @@ int main(int argc, char *argv[])
 	gtk_text_view_set_editable(GTK_TEXT_VIEW(text_view_raw), FALSE);
 	gtk_text_view_set_cursor_visible(GTK_TEXT_VIEW(text_view_raw), FALSE);
 
-	
 	/*
 	 * Create a text view for the stats view and set it RO with
 	 * invisible cursor.
@@ -912,7 +878,6 @@ int main(int argc, char *argv[])
 
 	gtk_text_view_set_editable(GTK_TEXT_VIEW(text_view_stats), FALSE);
 	gtk_text_view_set_cursor_visible(GTK_TEXT_VIEW(text_view_stats), FALSE);
-
 
 	/* Set tab labels */
 	split_label = gtk_label_new(" Split View ");
@@ -926,7 +891,6 @@ int main(int argc, char *argv[])
         gtk_notebook_set_tab_label(GTK_NOTEBOOK(notebook), text_view_stats,
                                                         stats_label);
 
-
 	/* Menu item callbacks */
 	g_signal_connect((gpointer) filemenu_quit, "activate", G_CALLBACK(
 						cb_quit), NULL);
@@ -935,7 +899,6 @@ int main(int argc, char *argv[])
 	g_signal_connect((gpointer) filemenu_open, "activate", G_CALLBACK(      				cb_file_selector), (gpointer) text_view);
 	g_signal_connect((gpointer) helpmenu_about, "activate", G_CALLBACK(                                 				cb_about_window), NULL);
 
-
 	/* Change default font throughout the text views */
 	font_desc = pango_font_description_from_string("Monospace");
 	gtk_widget_modify_font(text_view, font_desc);
@@ -943,14 +906,11 @@ int main(int argc, char *argv[])
 	gtk_widget_modify_font(text_view_stats, font_desc);
 	pango_font_description_free(font_desc);
 
-
 	gtk_widget_show(window);
-
 
 	/* If we got a filename as an argument, open that up in the viewer. */
 	if (argc > 1)
 		read_file(argv[1]);
-
 
 	gtk_main();
 	
