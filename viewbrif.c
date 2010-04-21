@@ -681,7 +681,7 @@ static void read_file(char *fn)
 
 	/* Open file RO and apply some fadvise hints */
 	fd = open(fn, O_RDONLY);
-	posix_fadvise(fd, 0, 0, POSIX_FADV_SEQUENTIAL);
+	posix_fadvise(fd, 0, 0, POSIX_FADV_WILLNEED);
 
 
 	gtk_text_buffer_insert_with_tags_by_name(buffer, &iter, 
