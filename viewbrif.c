@@ -211,7 +211,6 @@ static void create_tags(GtkTextBuffer *buffer)
 static void cb_about_window()
 {
 	GtkWidget *about;
-	
 	const gchar *authors[2] = { "Andrew Clayton <andrew@pccl.info>\n"
 				"Graham Thomson <g.thomson@pccl.co.uk>",
 							(const char*)NULL };
@@ -253,7 +252,6 @@ static void cb_file_selected(GtkWidget *w, GtkFileSelection *fs)
 static void cb_file_selector()
 {
 	GtkWidget *filew;
-
 
 	/* Create a new file selection widget */
 	filew = gtk_file_selection_new("File selection");
@@ -299,12 +297,10 @@ static void process_line(char *fline, int line_array[][2],
 	char pos[12], fnum[5], fname[31];
         char *data;
 	int i = 0, fstart = 0, flen = 0;
-
 	GtkTextBuffer *buffer;
 
 	buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text_view));
 	gtk_text_buffer_get_end_iter(buffer, &iter);
-
 
 	data = (char *)malloc(sizeof(char) * 301);
 
@@ -353,7 +349,6 @@ static void display_raw_line(char *fline, int line_array[][2])
 {
 	char *data, ln[7];
 	int i = 0, fstart = 0, flen = 0, color_flag = 0;
-
 	GtkTextBuffer *buffer_raw;
 
 	buffer_raw = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text_view_raw));
@@ -430,9 +425,7 @@ static void display_stats()
 	char *val, fn[31], famount[31], samount[31], camount[31];
 	int flen = 30;
 	double amnt = 0.0, samnt = 0.0, camnt = 0.0;
-
 	GtkTextBuffer *buffer_stats;
-
 
 	/* Set the locale to the users */
 	setlocale(LC_ALL, "");
@@ -598,7 +591,6 @@ static void read_file(char *fn)
 	int fd;
 	int offset = 0;	
 	struct stat st;
-
 	GtkTextBuffer *buffer;
 	GtkTextBuffer *buffer_raw;
 	GtkTextBuffer *buffer_stats;
@@ -658,7 +650,6 @@ static void read_file(char *fn)
 	/* Open file RO and apply some fadvise hints */
 	fd = open(fn, O_RDONLY);
 	posix_fadvise(fd, 0, 0, POSIX_FADV_WILLNEED);
-
 
 	gtk_text_buffer_insert_with_tags_by_name(buffer, &iter, 
 					"Displaying file: ", -1, "bold", NULL);
