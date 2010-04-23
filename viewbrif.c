@@ -295,14 +295,12 @@ static void process_line(char *fline, int line_array[][2],
 							char *field_headers[])
 {
 	char pos[12], fnum[5], fname[31];
-        char *data;
+        char data[301];
 	int i = 0, fstart = 0, flen = 0;
 	GtkTextBuffer *buffer;
 
 	buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text_view));
 	gtk_text_buffer_get_end_iter(buffer, &iter);
-
-	data = (char *)malloc(sizeof(char) * 301);
 
 	while (strncmp(fline + fstart, "\r\n", 2) != 0) {
                 fstart = line_array[i][0];
@@ -340,14 +338,13 @@ static void process_line(char *fline, int line_array[][2],
 			printf("Line: %s\n", data);
 	}
 
-	free(data);
 	display_raw_line(fline, line_array);
 	gather_stats(fline, line_array);
 }
 
 static void display_raw_line(char *fline, int line_array[][2])
 {
-	char *data, ln[7];
+	char data[301], ln[7];
 	int i = 0, fstart = 0, flen = 0, color_flag = 0;
 	GtkTextBuffer *buffer_raw;
 
@@ -358,8 +355,6 @@ static void display_raw_line(char *fline, int line_array[][2])
  	gtk_text_buffer_insert_with_tags_by_name(buffer_raw, &iter_raw, ln, -1,
 						"lightblue_background", NULL);
 	
-	data = (char *)malloc(sizeof(char) * 301);
-
 	while (strncmp(fline + fstart, "\r\n", 2) != 0) {
 		fstart = line_array[i][0];
 		flen = line_array[i][1];
@@ -379,16 +374,13 @@ static void display_raw_line(char *fline, int line_array[][2])
 	
 		i++;
 	}
-	
-	free(data);
 }
 
 static void gather_stats(char *fline, int line_array[][2])
 {
 	int fstart = 0, flen = 0;
-	char *data;
+	char data[301];
 
-	data = (char *)malloc(sizeof(char) * 301);
 	memset(data, '\0', sizeof(char) * 301);
 
 	if (strncmp(fline + 1, "A", 1) == 0) {
@@ -416,8 +408,6 @@ static void gather_stats(char *fline, int line_array[][2])
 
 		brif_stats.vat_ta += atoi(data);
 	}
-
-	free(data);
 }
 
 static void display_stats()
