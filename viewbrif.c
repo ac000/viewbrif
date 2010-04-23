@@ -23,6 +23,7 @@
 #include <monetary.h>
 #include <ctype.h>
 
+#include <glib.h>
 #include <gdk/gdkkeysyms.h>
 #include <gtk/gtk.h>
 
@@ -94,6 +95,7 @@ static void do_main_record(char *fline);
 static void do_purchasing_card(char *fline);
 static void do_purchasing_card_item(char *fline);
 static void read_file(char *fn);
+static void *read_file_thread(char *arg);
 
 static void reset_stats()
 {
@@ -243,7 +245,8 @@ static void cb_file_selected(GtkWidget *w, GtkFileSelection *fs)
 
 	printf("Selected file path = %s\n", fpath);
 	
-	read_file(fpath);
+	g_thread_create((GThreadFunc)read_file_thread, strdup(fpath),
+								FALSE, NULL);
 	
 	free(fpath);	
 }
@@ -592,7 +595,8 @@ static void read_file(char *fn)
 	/* Get file size */
 	stat(fn, &st);
 	brif_stats.file_size = st.st_size;
-	
+
+	gdk_threads_enter();
 	/* Reset the text views */
 	gtk_text_view_set_buffer(GTK_TEXT_VIEW(text_view), NULL);
 	gtk_text_view_set_buffer(GTK_TEXT_VIEW(text_view_raw), NULL);
@@ -645,6 +649,7 @@ static void read_file(char *fn)
 	gtk_text_buffer_insert_with_tags_by_name(buffer, &iter, fn, -1, 
 					"blue_foreground", "bold", NULL);
 	gtk_text_buffer_insert(buffer, &iter, "\n\n", -1);
+	gdk_threads_leave();
 
 	bf_map = mmap(0, st.st_size, PROT_READ, MAP_SHARED, fd, 0);
 	if (bf_map == MAP_FAILED) {
@@ -672,17 +677,23 @@ static void read_file(char *fn)
 			if (DEBUG > 1)
 				printf("Doing main record line.\n");
 
+			gdk_threads_enter();
 			do_main_record(fline);
+			gdk_threads_leave();
 		} else if (strncmp(fline + 2, "P", 1) == 0) {
 			if (DEBUG > 1)
 				printf("Doing purchasing card line.\n");
 
+			gdk_threads_enter();
 			do_purchasing_card(fline);
+			gdk_threads_leave();
 		} else if (strncmp(fline + 2, "I", 1) == 0) {
 			if (DEBUG > 1)
 				printf("Doing purchasing card item line.\n");
 
+			gdk_threads_enter();
 			do_purchasing_card_item(fline);
+			gdk_threads_leave();
 		}
 
 		if (DEBUG > 1)
@@ -691,9 +702,20 @@ static void read_file(char *fn)
 		line_pos = 0;
         }
 	
+	gdk_threads_enter();
 	display_stats();
+	gdk_threads_leave();
 	
 	munmap(bf_map, st.st_size);
+}
+
+static void *read_file_thread(char *arg)
+{
+	char *fpath = (char *)arg;
+
+	read_file(fpath);
+
+	return 0;
 }
 
 int main(int argc, char *argv[])
@@ -719,6 +741,8 @@ int main(int argc, char *argv[])
 	GtkAccelGroup *accel_group;
 	PangoFontDescription *font_desc;
 
+	g_thread_init(NULL);
+	gdk_threads_init();
 	gtk_init(&argc, &argv);
     
 	accel_group = gtk_accel_group_new();
@@ -890,9 +914,12 @@ int main(int argc, char *argv[])
 
 	/* If we got a filename as an argument, open that up in the viewer. */
 	if (argc > 1)
-		read_file(argv[1]);
+		g_thread_create((GThreadFunc)read_file_thread, argv[1],
+								FALSE, NULL);
 
+	gdk_threads_enter();
 	gtk_main();
+	gdk_threads_leave();
 	
 	exit(0);
 }
