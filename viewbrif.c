@@ -107,13 +107,12 @@ static void reset_stats()
 	brif_stats.file_size   = 0;
 }
 
+/*
+ * Takes a brif format amount, e.g 17520 and returns this value with
+ * the decimal point added, i.e 175.20
+ */
 static double add_dp(long int amount)
 {
-	/*
-	 * Takes a brif format amount, e.g 17520 and returns this value with
-	 * the decimal point added, i.e 175.20
-	 */
-
 	char *na, *na2;
 	double da;
 
