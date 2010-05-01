@@ -83,7 +83,6 @@ static char *str_pad(char *newstr, char *str, int len, char *padchar, int just);
 static void create_tags(GtkTextBuffer *buffer);
 static void cb_about_window();
 static void cb_quit(GtkMenuItem *menuitem, gpointer user_data);
-static void cb_new_window(GtkMenuItem *menuitem, gpointer user_data);
 static void cb_file_chooser();
 static void process_line(char *fline, int line_array[][2], 
 							char *field_headers[]);
@@ -261,10 +260,6 @@ static void cb_file_chooser()
 static void cb_quit(GtkMenuItem *menuitem, gpointer user_data)
 {
 	gtk_main_quit();
-}
-
-static void cb_new_window(GtkMenuItem *menuitem, gpointer user_data)
-{
 }
 
 static void process_line(char *fline, int line_array[][2], 
@@ -701,7 +696,6 @@ int main(int argc, char *argv[])
 	GtkWidget *menubar;
 	GtkWidget *filemenu;
     	GtkWidget *filemenu_menu;
-	GtkWidget *filemenu_new_window;
 	GtkWidget *filemenu_open;
 	GtkWidget *filemenu_quit;
 	GtkWidget *helpmenu;
@@ -746,12 +740,6 @@ int main(int argc, char *argv[])
 
  	filemenu_menu = gtk_menu_new();
   	gtk_menu_item_set_submenu(GTK_MENU_ITEM(filemenu), filemenu_menu);
-
-	/* Create the new menu item */
-  	filemenu_new_window = gtk_image_menu_item_new_from_stock("gtk-new", 
-								accel_group);
-  	/*gtk_widget_show(filemenu_new_window);*/
-  	gtk_container_add(GTK_CONTAINER(filemenu_menu), filemenu_new_window);
 
 	/* Create the open menu item */
 	filemenu_open = gtk_image_menu_item_new_from_stock("gtk-open", 
@@ -872,8 +860,6 @@ int main(int argc, char *argv[])
 	/* Menu item callbacks */
 	g_signal_connect((gpointer)filemenu_quit, "activate",
 						G_CALLBACK(cb_quit), NULL);
-	g_signal_connect((gpointer)filemenu_new_window, "activate",
-					G_CALLBACK(cb_new_window), NULL);
 	g_signal_connect((gpointer)filemenu_open, "activate",
 					G_CALLBACK(cb_file_chooser), NULL);
 	g_signal_connect((gpointer)helpmenu_about, "activate",
