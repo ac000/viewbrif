@@ -84,8 +84,7 @@ static void create_tags(GtkTextBuffer *buffer);
 static void cb_about_window();
 static void cb_quit(GtkMenuItem *menuitem, gpointer user_data);
 static void cb_new_window(GtkMenuItem *menuitem, gpointer user_data);
-static void cb_file_selector();
-static void cb_file_selected(GtkWidget *w, GtkFileSelection *fs);
+static void cb_file_chooser();
 static void process_line(char *fline, int line_array[][2], 
 							char *field_headers[]);
 static void display_raw_line(char *fline, int line_array[][2]);
@@ -233,55 +232,30 @@ static void cb_about_window()
 	gtk_widget_show(about);
 }
 
-static void cb_file_selected(GtkWidget *w, GtkFileSelection *fs)
+static void cb_file_chooser()
 {
-	char *fpath;
-	int len = 0;
-	
-	len = strlen(gtk_file_selection_get_filename(GTK_FILE_SELECTION(fs)));
-	fpath = (char *)malloc(sizeof(char) * (len + 1));
-	memset(fpath, '\0', sizeof(char) * (len + 1));
-	strcpy(fpath, gtk_file_selection_get_filename(GTK_FILE_SELECTION(fs)));
-
-	printf("Selected file path = %s\n", fpath);
-	
-	g_thread_create((GThreadFunc)read_file_thread, strdup(fpath),
-								FALSE, NULL);
-	
-	free(fpath);	
-}
-
-static void cb_file_selector()
-{
-	GtkWidget *filew;
+	GtkWidget *file_chooser;
+	char *filename;
 
 	/* Create a new file selection widget */
-	filew = gtk_file_selection_new("File selection");
+	file_chooser = gtk_file_chooser_dialog_new("File selection",
+						NULL,
+						GTK_FILE_CHOOSER_ACTION_OPEN,
+						GTK_STOCK_CANCEL,
+						GTK_RESPONSE_CANCEL,
+						GTK_STOCK_OPEN,
+						GTK_RESPONSE_ACCEPT,
+						NULL);
 
-	/* Connect the ok_button to file_ok_sel function */
-	g_signal_connect(G_OBJECT(GTK_FILE_SELECTION(filew)->ok_button),
-			"clicked", G_CALLBACK(cb_file_selected), 
-							(gpointer) filew);
-    
-	/* Connect the cancel_button to destroy the widget */
-	g_signal_connect_swapped(G_OBJECT(GTK_FILE_SELECTION(
-				filew)->cancel_button), "clicked", G_CALLBACK(
-					gtk_widget_destroy), G_OBJECT(filew));
-    	
-	/* 
-	 * Ensure that the dialog box is destroyed when the user clicks a 
-	 * button. 
-	 */
-   
-	g_signal_connect_swapped(GTK_FILE_SELECTION(filew)->ok_button,
-				"clicked", G_CALLBACK(gtk_widget_destroy), 
-							filew);
+	if (gtk_dialog_run(GTK_DIALOG(file_chooser)) == GTK_RESPONSE_ACCEPT) {
+		filename = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER
+								(file_chooser));
+		printf("Selected file = %s\n", filename);
+		g_thread_create((GThreadFunc)read_file_thread, filename,
+								FALSE, NULL);
+	}
 
-	g_signal_connect_swapped(GTK_FILE_SELECTION(
-				filew)->cancel_button, "clicked",
-				G_CALLBACK(gtk_widget_destroy), filew);
-	
-	gtk_widget_show(filew);
+	gtk_widget_destroy(file_chooser);
 }
 
 static void cb_quit(GtkMenuItem *menuitem, gpointer user_data)
@@ -720,7 +694,7 @@ static void *read_file_thread(char *arg)
 
 int main(int argc, char *argv[])
 {
-	static GtkWidget *window;
+	GtkWidget *window;
 	GtkWidget *scrolled_window;
 	GtkWidget *scrolled_window_raw;
 	GtkWidget *vbox;
@@ -896,12 +870,14 @@ int main(int argc, char *argv[])
                                                         stats_label);
 
 	/* Menu item callbacks */
-	g_signal_connect((gpointer) filemenu_quit, "activate", G_CALLBACK(
-						cb_quit), NULL);
-	g_signal_connect((gpointer) filemenu_new_window, "activate", G_CALLBACK(
-                                                cb_new_window), NULL);
-	g_signal_connect((gpointer) filemenu_open, "activate", G_CALLBACK(      				cb_file_selector), (gpointer) text_view);
-	g_signal_connect((gpointer) helpmenu_about, "activate", G_CALLBACK(                                 				cb_about_window), NULL);
+	g_signal_connect((gpointer)filemenu_quit, "activate",
+						G_CALLBACK(cb_quit), NULL);
+	g_signal_connect((gpointer)filemenu_new_window, "activate",
+					G_CALLBACK(cb_new_window), NULL);
+	g_signal_connect((gpointer)filemenu_open, "activate",
+					G_CALLBACK(cb_file_chooser), NULL);
+	g_signal_connect((gpointer)helpmenu_about, "activate",
+					G_CALLBACK(cb_about_window), NULL);
 
 	/* Change default font throughout the text views */
 	font_desc = pango_font_description_from_string("Monospace");
