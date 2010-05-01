@@ -28,7 +28,7 @@
 #include <gtk/gtk.h>
 
 /* Update for application version. */
-#define VERSION		"014"
+#define VERSION		"015"
 
 /*
  * DEBUG levels

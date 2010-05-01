@@ -1,6 +1,6 @@
 Summary:	GUI BRIF File Viewer
 Name:		viewbrif
-Version:	014
+Version:	015
 Release:	0.pccl%{?dist}
 Group:		Development/Tools
 License:	GPLv2
