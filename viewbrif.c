@@ -28,8 +28,11 @@
 #include <gdk/gdkkeysyms.h>
 #include <gtk/gtk.h>
 
+#include "viewbrif.h"
+#include "brif_spec.h"
+
 /* Update for application version. */
-#define VERSION		"016"
+#define VERSION		"017"
 
 /*
  * DEBUG levels
@@ -77,25 +80,6 @@ struct stats brif_stats = {
 	0,
 	0
 };
-
-static void reset_stats();
-static double add_dp(long int amount);
-static char *str_pad(char *newstr, char *str, int len, char *padchar, int just);
-static void create_tags(GtkTextBuffer *buffer);
-static void cb_about_window();
-static void cb_quit(GtkMenuItem *menuitem, gpointer user_data);
-static void cb_new_instance();
-static void cb_file_chooser();
-static void process_line(char *fline, int line_array[][2], 
-							char *field_headers[]);
-static void display_raw_line(char *fline, int line_array[][2]);
-static void gather_stats(char *fline, int line_array[][2]);
-static void display_stats();
-static void do_main_record(char *fline);
-static void do_purchasing_card(char *fline);
-static void do_purchasing_card_item(char *fline);
-static void read_file(char *fn);
-static void *read_file_thread(char *arg);
 
 static void reset_stats()
 {
@@ -282,8 +266,8 @@ static void cb_new_instance()
 	}
 }
 
-static void process_line(char *fline, int line_array[][2], 
-							char *field_headers[])
+static void process_line(char *fline, const int line_array[][2],
+						const char *field_headers[])
 {
 	char pos[12], fnum[5], fname[31];
         char data[301];
@@ -330,10 +314,9 @@ static void process_line(char *fline, int line_array[][2],
 	}
 
 	display_raw_line(fline, line_array);
-	gather_stats(fline, line_array);
 }
 
-static void display_raw_line(char *fline, int line_array[][2])
+static void display_raw_line(char *fline, const int line_array[][2])
 {
 	char data[301], ln[7];
 	int i = 0, fstart = 0, flen = 0, color_flag = 0;
@@ -367,7 +350,7 @@ static void display_raw_line(char *fline, int line_array[][2])
 	}
 }
 
-static void gather_stats(char *fline, int line_array[][2])
+static void gather_stats(char *fline, const int line_array[][2])
 {
 	int fstart = 0, flen = 0;
 	char data[301];
@@ -396,7 +379,6 @@ static void gather_stats(char *fline, int line_array[][2])
 		fstart = line_array[5][0];
 		flen = line_array[5][1];
 		strncpy(data, fline + fstart, flen);
-
 		brif_stats.vat_ta += atoi(data);
 	}
 }
@@ -478,23 +460,6 @@ static void display_stats()
 
 static void do_main_record(char *fline)
 {
-	char *mrn[] = { "Record Processed", "Record Type", "Transaction Type",
-                        "Cont/Aux Following", "Live/Test", "Transaction Date",
-                        "Transaction Time", "Merchant ID", "Terminal ID",
-                        "Capture Method", "PAN", "Expiry Date", "Start Date",
-			"Issue No.", "Amount", "Cash Back Amount", 
-			"Card Track 2", "Originators Trans Ref", 
-			"Currency Code", "Sort Code", "Auth Method", "User ID",
-			"RESERVED", "Card Scheme Code", "Network Terminal No.",
-			"Transaction Number", "Status", "Auth Code", 
-			"Error No.", "Error/Auth Message", "CRLF" };
-	int mrl[31][2] = { {0, 1}, {1, 1}, {2, 1}, {3, 1}, {4, 1},
-                        {5, 8}, {13, 6}, {19, 15}, {34, 8}, {42, 1},
-                        {43, 19}, {62, 4}, {66, 4}, {70, 2}, {72, 12},
-                        {84, 12}, {96, 40}, {136, 25}, {161, 3}, {164, 1},
-                        {165, 1}, {166, 8}, {174, 9}, {183, 3}, {186, 4},
-                        {190, 11}, {201, 1}, {202, 8}, {210, 4}, {214, 84},
-                        {298, 2} };
 	char hline[35];
 	GtkTextBuffer *buffer;
 
@@ -509,22 +474,6 @@ static void do_main_record(char *fline)
 
 static void do_purchasing_card(char *fline)
 {
-	char *pcln[] = { "Record Processed", "Record Type", "Aux Type",
-			"Continuation", "Page No.", "VAT Transaction Amount",
-			"Customer VAT Reg No.", "Supplier Order Ref", 
-			"Order Date", "Discount Amount", "Freight Amount",
-			"Dest Post Code", "Ship From Post Code", 
-			"Dest Country Code", "Freight VAT Rate", 
-			"Transaction VAT Status", "Customer Ref", 
-			"Customer Account No.", "Invoice No.", 
-			"Original Invoice No.", "Cost Centre", 
-			"Total Items Amount", "Filler", "CRLF" };
-	int pcl[24][2] = { {0, 1}, {1, 1}, {2, 1}, {3, 1}, {4, 1},
-                        {5, 12}, {17, 13}, {30, 12}, {42, 8}, {50, 12},
-                        {62, 12}, {74, 10}, {84, 10}, {94, 3}, {97, 4},
-                        {101, 1}, {102, 20}, {122, 12}, {134, 15}, {149, 15},
-                        {164, 20}, {184, 12}, {196, 102}, {298, 2} };
-	
 	char hline[35];
 	GtkTextBuffer *buffer;
 
@@ -539,19 +488,6 @@ static void do_purchasing_card(char *fline)
 
 static void do_purchasing_card_item(char *fline)
 {
-	char *pciln[] = { "Record Processed", "Record Type", "Aux Type",
-			"Continuation", "Page No.", "Item No.", "Unit Cost",
-			"Unit of Measure", "Commodity Code", "Item Description",
-			"Quantity", "VAT Rate", "Line Discount Amount", 
-			"Product Code", "Line VAT Amount", "Line Total Amount",
-			"VAT Rate Type", "Original Line Total Amount", 
-			"Debit/Credit", "Filler", "CRLF" };
-	int pcil[21][2] = { {0, 1}, {1, 1}, {2, 1}, {3, 1}, {4, 1},
-                        {5, 3}, {8, 12}, {20, 12}, {32, 15}, {47, 40},
-                        {87, 12}, {99, 4}, {103, 12}, {115, 12}, {127, 12},
-                        {139, 12}, {151, 1}, {152, 12}, {164, 1}, {165, 133},
-                        {298, 2} };
-
 	char hline[35];
         GtkTextBuffer *buffer;
 
@@ -649,6 +585,28 @@ static void read_file(char *fn)
 
 	close(fd);
 
+	/* Gather the stats first */
+	while (offset < st.st_size) {
+		memcpy(fline, bf_map + offset, 300);
+		offset += 300;
+
+		/* See comment below */
+		if (!isprint((int)fline[0]))
+			continue;
+
+		if (strncmp(fline + 1, "A", 1) == 0)
+			gather_stats(fline, mrl);
+		else if (strncmp(fline + 2, "P", 1) == 0)
+			gather_stats(fline, pcl);
+		else if (strncmp(fline + 2, "I", 1) == 0)
+			gather_stats(fline, pcil);
+	}
+
+	gdk_threads_enter();
+	display_stats();
+	gdk_threads_leave();
+
+	offset = 0;
 	while (offset < st.st_size) {
 		memcpy(fline, bf_map + offset, 300);
 		offset += 300;
@@ -690,10 +648,6 @@ static void read_file(char *fn)
 
 		line_pos = 0;
         }
-	
-	gdk_threads_enter();
-	display_stats();
-	gdk_threads_leave();
 	
 	munmap(bf_map, st.st_size);
 }
