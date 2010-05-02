@@ -17,6 +17,7 @@
 #include <sys/mman.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <signal.h>
 #include <fcntl.h>
 #include <locale.h>
 #include <string.h>
@@ -28,7 +29,7 @@
 #include <gtk/gtk.h>
 
 /* Update for application version. */
-#define VERSION		"015"
+#define VERSION		"016"
 
 /*
  * DEBUG levels
@@ -83,7 +84,7 @@ static char *str_pad(char *newstr, char *str, int len, char *padchar, int just);
 static void create_tags(GtkTextBuffer *buffer);
 static void cb_about_window();
 static void cb_quit(GtkMenuItem *menuitem, gpointer user_data);
-static void cb_new_window(GtkMenuItem *menuitem, gpointer user_data);
+static void cb_new_instance();
 static void cb_file_chooser();
 static void process_line(char *fline, int line_array[][2], 
 							char *field_headers[]);
@@ -263,8 +264,22 @@ static void cb_quit(GtkMenuItem *menuitem, gpointer user_data)
 	gtk_main_quit();
 }
 
-static void cb_new_window(GtkMenuItem *menuitem, gpointer user_data)
+static void cb_new_instance()
 {
+	pid_t pid;
+	struct sigaction sa;
+
+	sa.sa_handler = SIG_DFL;
+	sa.sa_flags = SA_NOCLDWAIT;
+	sigaction(SIGCHLD, &sa, NULL);
+
+	pid = fork();
+	if (pid == 0) {
+		if (access("./viewbrif", X_OK) == -1)
+			execlp("viewbrif", "viewbrif", (char *)NULL);
+		else
+			execlp("./viewbrif", "viewbrif", (char *)NULL);
+	}
 }
 
 static void process_line(char *fline, int line_array[][2], 
@@ -701,7 +716,7 @@ int main(int argc, char *argv[])
 	GtkWidget *menubar;
 	GtkWidget *filemenu;
     	GtkWidget *filemenu_menu;
-	GtkWidget *filemenu_new_window;
+	GtkWidget *filemenu_new_instance;
 	GtkWidget *filemenu_open;
 	GtkWidget *filemenu_quit;
 	GtkWidget *helpmenu;
@@ -748,10 +763,10 @@ int main(int argc, char *argv[])
   	gtk_menu_item_set_submenu(GTK_MENU_ITEM(filemenu), filemenu_menu);
 
 	/* Create the new menu item */
-  	filemenu_new_window = gtk_image_menu_item_new_from_stock("gtk-new", 
+	filemenu_new_instance = gtk_image_menu_item_new_from_stock("gtk-new",
 								accel_group);
-  	/*gtk_widget_show(filemenu_new_window);*/
-  	gtk_container_add(GTK_CONTAINER(filemenu_menu), filemenu_new_window);
+	gtk_widget_show(filemenu_new_instance);
+	gtk_container_add(GTK_CONTAINER(filemenu_menu), filemenu_new_instance);
 
 	/* Create the open menu item */
 	filemenu_open = gtk_image_menu_item_new_from_stock("gtk-open", 
@@ -872,8 +887,8 @@ int main(int argc, char *argv[])
 	/* Menu item callbacks */
 	g_signal_connect((gpointer)filemenu_quit, "activate",
 						G_CALLBACK(cb_quit), NULL);
-	g_signal_connect((gpointer)filemenu_new_window, "activate",
-					G_CALLBACK(cb_new_window), NULL);
+	g_signal_connect((gpointer)filemenu_new_instance, "activate",
+					G_CALLBACK(cb_new_instance), NULL);
 	g_signal_connect((gpointer)filemenu_open, "activate",
 					G_CALLBACK(cb_file_chooser), NULL);
 	g_signal_connect((gpointer)helpmenu_about, "activate",
