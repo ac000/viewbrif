@@ -493,10 +493,10 @@ static void do_purchasing_card(char *fline)
 
 	gdk_threads_enter();
 	sprintf(hline, "Line no: %d, Purchasing Card\n", line_no++);
-        buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text_view));
+	buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text_view));
 	gtk_text_buffer_get_end_iter(buffer, &iter);
-        gtk_text_buffer_insert_with_tags_by_name(buffer, &iter, hline, -1,
-                                                "green_foreground", NULL);
+	gtk_text_buffer_insert_with_tags_by_name(buffer, &iter, hline, -1,
+						"green_foreground", NULL);
 
 	gdk_flush();
 	gdk_threads_leave();
@@ -507,14 +507,14 @@ static void do_purchasing_card(char *fline)
 static void do_purchasing_card_item(char *fline)
 {
 	char hline[35];
-        GtkTextBuffer *buffer;
+	GtkTextBuffer *buffer;
 
 	gdk_threads_enter();
 	sprintf(hline, "Line no: %d, Purchasing Card Item\n", line_no++);
 	buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text_view));
 	gtk_text_buffer_get_end_iter(buffer, &iter);
-        gtk_text_buffer_insert_with_tags_by_name(buffer, &iter, hline, -1,
-                                                "green_foreground", NULL);
+	gtk_text_buffer_insert_with_tags_by_name(buffer, &iter, hline, -1,
+						"green_foreground", NULL);
 
 	gdk_flush();
 	gdk_threads_leave();
