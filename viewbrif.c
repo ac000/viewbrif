@@ -274,8 +274,11 @@ static void process_line(char *fline, const int line_array[][2],
 	int i = 0, fstart = 0, flen = 0;
 	GtkTextBuffer *buffer;
 
+	gdk_threads_enter();
 	buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text_view));
 	gtk_text_buffer_get_end_iter(buffer, &iter);
+	gdk_flush();
+	gdk_threads_leave();
 
 	while (strncmp(fline + fstart, "\r\n", 2) != 0) {
                 fstart = line_array[i][0];
@@ -292,6 +295,7 @@ static void process_line(char *fline, const int line_array[][2],
 		str_pad(fnum, fnum, 4, " ", PAD_RIGHT);
 		str_pad(fname, fname, 30, " ", PAD_RIGHT);		
 
+		gdk_threads_enter();
 		gtk_text_buffer_insert_with_tags_by_name(buffer, &iter, pos,
                                                 -1, "red_foreground", NULL);
 		gtk_text_buffer_insert_with_tags_by_name(buffer, &iter, fnum,
@@ -306,6 +310,9 @@ static void process_line(char *fline, const int line_array[][2],
 		strcat(data, "\n");
 		gtk_text_buffer_insert_with_tags_by_name(buffer, &iter, data, 
 						-1, "orange_background", NULL);
+		gdk_flush();
+		gdk_threads_leave();
+
 		line_pos += flen;
 		i++;
 		
@@ -313,7 +320,10 @@ static void process_line(char *fline, const int line_array[][2],
 			printf("Line: %s\n", data);
 	}
 
+	gdk_threads_enter();
 	display_raw_line(fline, line_array);
+	gdk_flush();
+	gdk_threads_leave();
 }
 
 static void display_raw_line(char *fline, const int line_array[][2])
@@ -463,11 +473,15 @@ static void do_main_record(char *fline)
 	char hline[35];
 	GtkTextBuffer *buffer;
 
+	gdk_threads_enter();
 	sprintf(hline, "Line no: %d, Main Record\n", line_no++);
 	buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text_view));
 	gtk_text_buffer_get_end_iter(buffer, &iter);
 	gtk_text_buffer_insert_with_tags_by_name(buffer, &iter, hline, -1,
 						"green_foreground", NULL);
+
+	gdk_flush();
+	gdk_threads_leave();
 
 	process_line(fline, mrl, mrn);
 }
@@ -477,11 +491,15 @@ static void do_purchasing_card(char *fline)
 	char hline[35];
 	GtkTextBuffer *buffer;
 
+	gdk_threads_enter();
 	sprintf(hline, "Line no: %d, Purchasing Card\n", line_no++);
         buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text_view));
 	gtk_text_buffer_get_end_iter(buffer, &iter);
         gtk_text_buffer_insert_with_tags_by_name(buffer, &iter, hline, -1,
                                                 "green_foreground", NULL);
+
+	gdk_flush();
+	gdk_threads_leave();
 
 	process_line(fline, pcl, pcln);
 }
@@ -491,11 +509,15 @@ static void do_purchasing_card_item(char *fline)
 	char hline[35];
         GtkTextBuffer *buffer;
 
+	gdk_threads_enter();
 	sprintf(hline, "Line no: %d, Purchasing Card Item\n", line_no++);
 	buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text_view));
 	gtk_text_buffer_get_end_iter(buffer, &iter);
         gtk_text_buffer_insert_with_tags_by_name(buffer, &iter, hline, -1,
                                                 "green_foreground", NULL);
+
+	gdk_flush();
+	gdk_threads_leave();
 
 	process_line(fline, pcil, pciln);
 }
@@ -574,6 +596,7 @@ static void read_file(char *fn)
 	gtk_text_buffer_insert_with_tags_by_name(buffer, &iter, fn, -1, 
 					"blue_foreground", "bold", NULL);
 	gtk_text_buffer_insert(buffer, &iter, "\n\n", -1);
+	gdk_flush();
 	gdk_threads_leave();
 
 	bf_map = mmap(0, st.st_size, PROT_READ, MAP_SHARED, fd, 0);
@@ -604,6 +627,7 @@ static void read_file(char *fn)
 
 	gdk_threads_enter();
 	display_stats();
+	gdk_flush();
 	gdk_threads_leave();
 
 	offset = 0;
@@ -624,23 +648,26 @@ static void read_file(char *fn)
 			if (DEBUG > 1)
 				printf("Doing main record line.\n");
 
-			gdk_threads_enter();
+			//gdk_threads_enter();
 			do_main_record(fline);
-			gdk_threads_leave();
+			//gdk_flush();
+			//gdk_threads_leave();
 		} else if (strncmp(fline + 2, "P", 1) == 0) {
 			if (DEBUG > 1)
 				printf("Doing purchasing card line.\n");
 
-			gdk_threads_enter();
+			//gdk_threads_enter();
 			do_purchasing_card(fline);
-			gdk_threads_leave();
+			//gdk_flush();
+			//gdk_threads_leave();
 		} else if (strncmp(fline + 2, "I", 1) == 0) {
 			if (DEBUG > 1)
 				printf("Doing purchasing card item line.\n");
 
-			gdk_threads_enter();
+			//gdk_threads_enter();
 			do_purchasing_card_item(fline);
-			gdk_threads_leave();
+			//gdk_flush();
+			//gdk_threads_leave();
 		}
 
 		if (DEBUG > 1)
@@ -686,6 +713,7 @@ int main(int argc, char *argv[])
 
 	g_thread_init(NULL);
 	gdk_threads_init();
+	gdk_threads_enter();
 	gtk_init(&argc, &argv);
     
 	accel_group = gtk_accel_group_new();
@@ -862,7 +890,6 @@ int main(int argc, char *argv[])
 		g_thread_create((GThreadFunc)read_file_thread, argv[1],
 								FALSE, NULL);
 
-	gdk_threads_enter();
 	gtk_main();
 	gdk_threads_leave();
 	
