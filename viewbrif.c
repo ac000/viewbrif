@@ -32,7 +32,7 @@
 #include "brif_spec.h"
 
 /* Update for application version. */
-#define VERSION		"018"
+#define VERSION		"018.90"
 
 /*
  * DEBUG levels
@@ -648,26 +648,17 @@ static void read_file(char *fn)
 			if (DEBUG > 1)
 				printf("Doing main record line.\n");
 
-			//gdk_threads_enter();
 			do_main_record(fline);
-			//gdk_flush();
-			//gdk_threads_leave();
 		} else if (strncmp(fline + 2, "P", 1) == 0) {
 			if (DEBUG > 1)
 				printf("Doing purchasing card line.\n");
 
-			//gdk_threads_enter();
 			do_purchasing_card(fline);
-			//gdk_flush();
-			//gdk_threads_leave();
 		} else if (strncmp(fline + 2, "I", 1) == 0) {
 			if (DEBUG > 1)
 				printf("Doing purchasing card item line.\n");
 
-			//gdk_threads_enter();
 			do_purchasing_card_item(fline);
-			//gdk_flush();
-			//gdk_threads_leave();
 		}
 
 		if (DEBUG > 1)
