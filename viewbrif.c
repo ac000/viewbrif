@@ -203,7 +203,7 @@ static void cb_about_window()
 	about = gtk_about_dialog_new();
 
 	gtk_window_set_title(GTK_WINDOW(about), "About ViewBRIF");
-	gtk_about_dialog_set_name(GTK_ABOUT_DIALOG(about), "ViewBRIF");
+	gtk_about_dialog_set_program_name(GTK_ABOUT_DIALOG(about), "ViewBRIF");
 	gtk_about_dialog_set_version(GTK_ABOUT_DIALOG(about), VERSION);
 	gtk_about_dialog_set_copyright(GTK_ABOUT_DIALOG(about), 
 				"Copyright (C) 2006-2010 Andrew Clayton");
