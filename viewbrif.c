@@ -198,7 +198,7 @@ static void cb_about_window()
 	GtkWidget *about;
 	const gchar *authors[2] = { "Andrew Clayton <andrew@pccl.info>\n"
 				"Graham Thomson <g.thomson@pccl.co.uk>",
-							(const char*)NULL };
+							(const char *)NULL };
 
 	about = gtk_about_dialog_new();
 
