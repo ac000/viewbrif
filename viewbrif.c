@@ -99,7 +99,8 @@ static void reset_stats()
  */
 static double add_dp(long int amount)
 {
-	char *na, *na2;
+	char *na;
+	char *na2;
 	double da;
 
 	/* brif amount format */
@@ -132,8 +133,9 @@ static double add_dp(long int amount)
 
 static char *str_pad(char *newstr, char *str, int len, char *padchar, int just)
 {
-        char *padstr;
-        int i, ppos;
+	char *padstr;
+	int i;
+	int ppos;
         
 	if (just == PAD_LEFT || just == PAD_RIGHT) {
                 padstr = (char *)malloc(sizeof(char) * (len - strlen(str))
@@ -269,9 +271,13 @@ static void cb_new_instance()
 static void process_line(char *fline, const int line_array[][2],
 						const char *field_headers[])
 {
-	char pos[12], fnum[5], fname[31];
-        char data[301];
-	int i = 0, fstart = 0, flen = 0;
+	char pos[12];
+	char fnum[5];
+	char fname[31];
+	char data[301];
+	int i = 0;
+	int fstart = 0;
+	int flen = 0;
 	GtkTextBuffer *buffer;
 
 	gdk_threads_enter();
@@ -328,8 +334,12 @@ static void process_line(char *fline, const int line_array[][2],
 
 static void display_raw_line(char *fline, const int line_array[][2])
 {
-	char data[301], ln[7];
-	int i = 0, fstart = 0, flen = 0, color_flag = 0;
+	char data[301];
+	char ln[7];
+	int i = 0;
+	int fstart = 0;
+	int flen = 0;
+	int color_flag = 0;
 	GtkTextBuffer *buffer_raw;
 
 	buffer_raw = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text_view_raw));
@@ -362,7 +372,8 @@ static void display_raw_line(char *fline, const int line_array[][2])
 
 static void gather_stats(char *fline, const int line_array[][2])
 {
-	int fstart = 0, flen = 0;
+	int fstart = 0;
+	int flen = 0;
 	char data[301];
 
 	memset(data, '\0', sizeof(char) * 301);
@@ -395,9 +406,15 @@ static void gather_stats(char *fline, const int line_array[][2])
 
 static void display_stats()
 {
-	char *val, fn[31], famount[31], samount[31], camount[31];
+	char *val;
+	char fn[31];
+	char famount[31];
+	char samount[31];
+	char camount[31];
 	int flen = 30;
-	double amnt = 0.0, samnt = 0.0, camnt = 0.0;
+	double amnt = 0.0;
+	double samnt = 0.0;
+	double camnt = 0.0;
 	GtkTextBuffer *buffer_stats;
 
 	/* Set the locale to the users */
