@@ -44,9 +44,9 @@
  */ 
 #define DEBUG		0
 
-#define PAD_LEFT        0
-#define PAD_RIGHT       1
-#define PAD_CENT        2
+#define PAD_LEFT	0
+#define PAD_RIGHT	1
+#define PAD_CENT	2
 
 int line_no = 1;
 int line_pos = 0;
