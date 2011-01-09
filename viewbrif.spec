@@ -35,7 +35,7 @@ rm -rf $RPM_BUILD_ROOT
 /usr/share/applications/viewbrif.desktop
 
 %changelog
-* Sun Jan 09 2010 Andrew Clayton <andrew@pccl.info> - 019-0.pccl
+* Sun Jan 09 2011 Andrew Clayton <andrew@pccl.info> - 019-0.pccl
 - Update for new version.
 
 * Sun Sep 05 2010 Andrew Clayton <andrew@pccl.info> - 018-0.pccl
