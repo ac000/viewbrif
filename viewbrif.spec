@@ -1,6 +1,6 @@
 Summary:	GUI BRIF File Viewer
 Name:		viewbrif
-Version:	018
+Version:	019
 Release:	0.pccl%{?dist}
 Group:		Development/Tools
 License:	GPLv2
@@ -35,6 +35,9 @@ rm -rf $RPM_BUILD_ROOT
 /usr/share/applications/viewbrif.desktop
 
 %changelog
+* Sun Jan 09 2010 Andrew Clayton <andrew@pccl.info> - 019-0.pccl
+- Update for new version.
+
 * Sun Sep 05 2010 Andrew Clayton <andrew@pccl.info> - 018-0.pccl
 - Update for new version.
 
