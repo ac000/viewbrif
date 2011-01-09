@@ -32,7 +32,7 @@
 #include "brif_spec.h"
 
 /* Update for application version. */
-#define VERSION		"018.90"
+#define VERSION		"018.95"
 
 /*
  * DEBUG levels
@@ -48,9 +48,13 @@
 #define PAD_RIGHT	1
 #define PAD_CENT	2
 
+#define SPLIT_VIEW	0
+#define RAW_VIEW	1
+
 int line_no = 1;
 int line_pos = 0;
 
+GtkWidget *notebook;
 GtkWidget *text_view;
 GtkWidget *text_view_raw;
 GtkWidget *text_view_stats;
@@ -193,6 +197,71 @@ static void create_tags(GtkTextBuffer *buffer)
 
 	gtk_text_buffer_create_tag(buffer, "lightblue_background", 
 						"background", "#cce4ff", NULL);
+}
+
+static gboolean find_text(GtkTextBuffer *buffer, const gchar *text,
+							GtkTextIter *iter)
+{
+	GtkTextIter mstart;
+	GtkTextIter mend;
+	GtkTextMark *last_pos;
+	gboolean found;
+
+	found = gtk_text_iter_forward_search(iter, text, 0, &mstart, &mend,
+									NULL);
+
+	if (found) {
+		gtk_text_buffer_select_range(buffer, &mstart, &mend);
+		last_pos = gtk_text_buffer_create_mark(buffer, "last_pos",
+								&mend, FALSE);
+
+		if (gtk_notebook_get_current_page(
+					GTK_NOTEBOOK(notebook)) == SPLIT_VIEW)
+			gtk_text_view_scroll_mark_onscreen(GTK_TEXT_VIEW(
+							text_view), last_pos);
+		else if (gtk_notebook_get_current_page(
+					GTK_NOTEBOOK(notebook)) == RAW_VIEW)
+			gtk_text_view_scroll_mark_onscreen(GTK_TEXT_VIEW(
+								text_view_raw),
+								last_pos);
+
+		return TRUE;
+	}
+
+	return FALSE;
+}
+
+static gboolean cb_search(GtkWidget *search_button, gpointer data)
+{
+	const gchar *text;
+	GtkTextBuffer *buffer;
+	GtkTextIter iter;
+	GtkTextMark *last_pos;
+	static gboolean searched = FALSE;
+	static gboolean found = FALSE;
+
+	text = gtk_entry_get_text(GTK_ENTRY(data));
+	if (gtk_notebook_get_current_page(GTK_NOTEBOOK(notebook)) == SPLIT_VIEW)
+		buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text_view));
+	else if (gtk_notebook_get_current_page(GTK_NOTEBOOK(notebook)) ==
+								RAW_VIEW)
+		buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text_view_raw));
+	else
+		return TRUE;
+
+	last_pos = gtk_text_buffer_get_mark(buffer, "last_pos");
+	if (searched && last_pos != NULL) {
+		gtk_text_buffer_get_iter_at_mark(buffer, &iter, last_pos);
+	} else if (!found || last_pos == NULL) {
+		searched = TRUE;
+		gtk_text_buffer_get_start_iter(buffer, &iter);
+	}
+
+	found = find_text(buffer, text, &iter);
+	if (!found)
+		searched = FALSE;
+
+	return TRUE;
 }
 
 static void cb_about_window()
@@ -712,12 +781,14 @@ int main(int argc, char *argv[])
 	GtkWidget *helpmenu_menu;
 	GtkWidget *helpmenu_about;
 	GtkWidget *separator_menu_item;
-	GtkWidget *notebook;
 	GtkWidget *split_label;
 	GtkWidget *raw_label;
 	GtkWidget *stats_label;
 	GtkAccelGroup *accel_group;
 	PangoFontDescription *font_desc;
+	GtkWidget *hbox;
+	GtkWidget *search_entry;
+	GtkWidget *search_button;
 
 	g_thread_init(NULL);
 	gdk_threads_init();
@@ -890,6 +961,21 @@ int main(int argc, char *argv[])
 	gtk_widget_modify_font(text_view_raw, font_desc);
 	gtk_widget_modify_font(text_view_stats, font_desc);
 	pango_font_description_free(font_desc);
+
+	/* Horizontal box to hold the search entry and button */
+	hbox = gtk_hbox_new(FALSE, 0);
+	gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, FALSE, 0);
+	gtk_widget_show(hbox);
+
+	search_entry = gtk_entry_new();
+	gtk_box_pack_start(GTK_BOX(hbox), search_entry, TRUE, TRUE, 0);
+	gtk_widget_show(search_entry);
+
+	search_button = gtk_button_new_with_label("Search");
+	gtk_box_pack_start(GTK_BOX(hbox), search_button, FALSE, FALSE, 0);
+	gtk_widget_show(search_button);
+	g_signal_connect(G_OBJECT(search_button), "clicked",
+					G_CALLBACK(cb_search), search_entry);
 
 	gtk_widget_show(window);
 

@@ -13,6 +13,9 @@ static void reset_stats();
 static double add_dp(long int amount);
 static char *str_pad(char *newstr, char *str, int len, char *padchar, int just);
 static void create_tags(GtkTextBuffer *buffer);
+static gboolean find_text(GtkTextBuffer *buffer, const gchar *text,
+							GtkTextIter *iter);
+static gboolean cb_search(GtkWidget *search_button, gpointer data);
 static void cb_about_window();
 static void cb_quit(GtkMenuItem *menuitem, gpointer user_data);
 static void cb_new_instance();
