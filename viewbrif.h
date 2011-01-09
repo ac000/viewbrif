@@ -3,7 +3,7 @@
  *
  * Function definitions for viebrif.c
  *
- * Copyright (C) 2010 Andrew Clayton <andrew@pccl.info>
+ * Copyright (C) 2010-2011 Andrew Clayton <andrew@pccl.info>
  *
  * Released under the General Public License (GPL) version 2
  * See COPYING

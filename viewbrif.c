@@ -3,7 +3,7 @@
  *
  * A GUI BRIF file viewer
  *
- * Copyright (C) 2006-2010, Andrew Clayton <andrew@pccl.info>
+ * Copyright (C) 2006-2011, Andrew Clayton <andrew@pccl.info>
  *
  * Released under the General Public License (GPL) version 2.
  * See COPYING
