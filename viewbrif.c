@@ -970,6 +970,8 @@ int main(int argc, char *argv[])
 	search_entry = gtk_entry_new();
 	gtk_box_pack_start(GTK_BOX(hbox), search_entry, TRUE, TRUE, 0);
 	gtk_widget_show(search_entry);
+	g_signal_connect(G_OBJECT(search_entry), "activate",
+					G_CALLBACK(cb_search), search_entry);
 
 	search_button = gtk_button_new_with_label("Search");
 	gtk_box_pack_start(GTK_BOX(hbox), search_button, FALSE, FALSE, 0);
