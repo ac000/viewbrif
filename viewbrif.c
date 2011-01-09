@@ -277,7 +277,7 @@ static void cb_about_window()
 	gtk_about_dialog_set_program_name(GTK_ABOUT_DIALOG(about), "ViewBRIF");
 	gtk_about_dialog_set_version(GTK_ABOUT_DIALOG(about), VERSION);
 	gtk_about_dialog_set_copyright(GTK_ABOUT_DIALOG(about), 
-				"Copyright (C) 2006-2010 Andrew Clayton");
+				"Copyright (C) 2006-2011 Andrew Clayton");
 	gtk_about_dialog_set_authors(GTK_ABOUT_DIALOG(about), 
 						(const gchar **)&authors);
 
