@@ -32,7 +32,7 @@
 #include "brif_spec.h"
 
 /* Update for application version. */
-#define VERSION		"020"
+#define VERSION		"021"
 
 /*
  * DEBUG levels
@@ -95,6 +95,19 @@ static void reset_stats()
 	brif_stats.credits_amt = 0;
 	brif_stats.vat_ta      = 0;
 	brif_stats.file_size   = 0;
+}
+
+/*
+ * Set the window title to 'ViewBRIF (/path/to/brifile)'
+ */
+static void set_window_title(GtkWidget *window, char *extra_title)
+{
+	char *window_title;
+
+	window_title = malloc(12 + strlen(extra_title) * sizeof(char *));
+	sprintf(window_title, "ViewBRIF (%s)", extra_title);
+	gtk_window_set_title(GTK_WINDOW(window), window_title);
+	free(window_title);
 }
 
 /*
@@ -288,10 +301,10 @@ static void cb_about_window()
 	gtk_widget_show(about);
 }
 
-static void cb_file_chooser()
+static void cb_file_chooser(GtkWidget *widget, gpointer data)
 {
 	GtkWidget *file_chooser;
-	char *filename;
+	char *filename = NULL;
 
 	/* Create a new file selection widget */
 	file_chooser = gtk_file_chooser_dialog_new("File selection",
@@ -312,6 +325,7 @@ static void cb_file_chooser()
 	}
 
 	gtk_widget_destroy(file_chooser);
+	set_window_title(data, filename);
 }
 
 static void cb_quit(GtkMenuItem *menuitem, gpointer user_data)
@@ -951,7 +965,7 @@ int main(int argc, char *argv[])
 	g_signal_connect((gpointer)filemenu_new_instance, "activate",
 					G_CALLBACK(cb_new_instance), NULL);
 	g_signal_connect((gpointer)filemenu_open, "activate",
-					G_CALLBACK(cb_file_chooser), NULL);
+					G_CALLBACK(cb_file_chooser), window);
 	g_signal_connect((gpointer)helpmenu_about, "activate",
 					G_CALLBACK(cb_about_window), NULL);
 
@@ -982,9 +996,11 @@ int main(int argc, char *argv[])
 	gtk_widget_show(window);
 
 	/* If we got a filename as an argument, open that up in the viewer. */
-	if (argc > 1)
+	if (argc > 1) {
 		g_thread_create((GThreadFunc)read_file_thread, argv[1],
 								FALSE, NULL);
+		set_window_title(window, argv[1]);
+	}
 
 	gtk_main();
 	gdk_threads_leave();

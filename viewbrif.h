@@ -10,6 +10,7 @@
  */
 
 static void reset_stats();
+static void set_window_title(GtkWidget *window, char *extra_title);
 static double add_dp(long int amount);
 static char *str_pad(char *newstr, char *str, int len, char *padchar, int just);
 static void create_tags(GtkTextBuffer *buffer);
@@ -19,7 +20,7 @@ static gboolean cb_search(GtkWidget *search_button, gpointer data);
 static void cb_about_window();
 static void cb_quit(GtkMenuItem *menuitem, gpointer user_data);
 static void cb_new_instance();
-static void cb_file_chooser();
+static void cb_file_chooser(GtkWidget *widget, gpointer data);
 static void process_line(char *fline, const int line_array[][2], 
 						const char *field_headers[]);
 static void display_raw_line(char *fline, const int line_array[][2]);
