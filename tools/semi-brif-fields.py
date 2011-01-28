@@ -49,11 +49,7 @@ if len(sys.argv) < 2:
 
 bfp = open(sys.argv[1], 'r')
 
-while 1:
-	line = bfp.readline()
-	if line == "":
-		break
-
+for line in bfp:
 	if line[2:3] == "R" or line[2:3] == "S":
 		do_main_record(line)
 	elif line[3:4] == " ":
