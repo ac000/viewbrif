@@ -665,6 +665,8 @@ static void read_file(char *fn)
 	create_tags(buffer);
 	create_tags(buffer_raw);
 	create_tags(buffer_stats);
+	gdk_flush();
+	gdk_threads_leave();
 
 	/*
 	 * If the file size is NOT a multiple of 300 or is 0 size, 
@@ -676,14 +678,20 @@ static void read_file(char *fn)
 		"ERROR: Size (%lu) of file (%s) is not a multiple of 300.", 
 								st.st_size, fn);
 		printf("%s\n", emesg);
+		gdk_threads_enter();
 		gtk_text_buffer_insert_with_tags_by_name(buffer, &iter,
 						emesg, -1, "bold", NULL);
+		gdk_flush();
+		gdk_threads_leave();
 		return;
 	} else if (st.st_size == 0) {
 		sprintf(emesg, "ERROR: File (%s) seems to be empty.", fn);
 		printf("%s\n", emesg);
+		gdk_threads_enter();
 		gtk_text_buffer_insert_with_tags_by_name(buffer, &iter,
 						emesg, -1, "bold", NULL);
+		gdk_flush();
+		gdk_threads_leave();
 		return;
 	}
 
@@ -691,6 +699,7 @@ static void read_file(char *fn)
 	fd = open(fn, O_RDONLY);
 	posix_fadvise(fd, 0, 0, POSIX_FADV_WILLNEED);
 
+	gdk_threads_enter();
 	gtk_text_buffer_insert_with_tags_by_name(buffer, &iter, 
 					"Displaying file: ", -1, "bold", NULL);
 	gtk_text_buffer_insert_with_tags_by_name(buffer, &iter, fn, -1, 
