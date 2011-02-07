@@ -130,7 +130,7 @@ static double add_dp(long int amount)
 	memset(na2, '\0', sizeof(na) + 2);
 
 	/* If we got less than 100p prepend a 0 to the value for strfmon() */
-	if (amount < 100)
+	if ((amount < 100 && amount > 0) || (amount > -100 && amount < 0))
 		strcat(na2, "0");
 
 	strncat(na2, na, strlen(na) - 2);
