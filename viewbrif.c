@@ -70,7 +70,8 @@ struct stats {
 	long int amount;
 	long int sales_amt;
 	long int credits_amt;
-	long int vat_ta;
+	long int sales_vat_amt;
+	long int credits_vat_amt;
 	long int file_size;
 };
 
@@ -82,19 +83,21 @@ struct stats brif_stats = {
 	0,
 	0,
 	0,
+	0,
 	0
 };
 
 static void reset_stats()
 {
-	brif_stats.trans       = 0;
-	brif_stats.credits     = 0;
-	brif_stats.sales       = 0;
-	brif_stats.amount      = 0;
-	brif_stats.sales_amt   = 0;
-	brif_stats.credits_amt = 0;
-	brif_stats.vat_ta      = 0;
-	brif_stats.file_size   = 0;
+	brif_stats.trans	   = 0;
+	brif_stats.credits	   = 0;
+	brif_stats.sales	   = 0;
+	brif_stats.amount	   = 0;
+	brif_stats.sales_amt	   = 0;
+	brif_stats.credits_amt	   = 0;
+	brif_stats.sales_vat_amt   = 0;
+	brif_stats.credits_vat_amt = 0;
+	brif_stats.file_size	   = 0;
 }
 
 /*
@@ -458,6 +461,7 @@ static void gather_stats(char *fline, const int line_array[][2])
 	int fstart = 0;
 	int flen = 0;
 	char data[301];
+	static char trans_type[2] = "\0";
 
 	memset(data, '\0', sizeof(char) * 301);
 
@@ -467,23 +471,27 @@ static void gather_stats(char *fline, const int line_array[][2])
 		fstart = line_array[14][0];
 		flen = line_array[14][1];
 		strncpy(data, fline + fstart, flen);
+		brif_stats.amount += atoi(data);
 
 		if (strncmp(fline + 2, "S", 1) == 0) {
 			brif_stats.sales++;
-			brif_stats.amount += atoi(data);
 			brif_stats.sales_amt += atoi(data);
+			strcpy(trans_type, "S");
 		}
 
 		if (strncmp(fline + 2, "R", 1) == 0) {
 			brif_stats.credits++;
-			brif_stats.amount -= atoi(data);
 			brif_stats.credits_amt += atoi(data);
+			strcpy(trans_type, "R");
 		}
 	} else if (strncmp(fline + 2, "P", 1) == 0) {
 		fstart = line_array[5][0];
 		flen = line_array[5][1];
 		strncpy(data, fline + fstart, flen);
-		brif_stats.vat_ta += atoi(data);
+		if (strncmp(trans_type, "S", 1) == 0)
+			brif_stats.sales_vat_amt += atoi(data);
+		else if (strncmp(trans_type, "R", 1) == 0)
+			brif_stats.credits_vat_amt += atoi(data);
 	}
 }
 
@@ -533,9 +541,16 @@ static void display_stats()
 	gtk_text_buffer_insert(buffer_stats, &iter_stats, fn, -1);
 	gtk_text_buffer_insert(buffer_stats, &iter_stats, val, -1);
 	free(val);
-	samnt = add_dp(brif_stats.sales_amt);
+	/* Total of sales (net) */
+	samnt = add_dp(brif_stats.sales_amt - brif_stats.sales_vat_amt);
+	strfmon(samount, sizeof(samount), "%=15n\n", samnt);
+	str_pad(fn, "     Sales total (net)", flen, " ", PAD_RIGHT);
+	gtk_text_buffer_insert(buffer_stats, &iter_stats, fn, -1);
+	gtk_text_buffer_insert(buffer_stats, &iter_stats, samount, -1);
+	/* Total of sales VAT */
+	samnt = add_dp(brif_stats.sales_vat_amt);
 	strfmon(samount, sizeof(samount), "%=15n\n\n", samnt);
-	str_pad(fn, "           Sales total", flen, " ", PAD_RIGHT);
+	str_pad(fn, "       Sales VAT total", flen, " ", PAD_RIGHT);
 	gtk_text_buffer_insert(buffer_stats, &iter_stats, fn, -1);
 	gtk_text_buffer_insert(buffer_stats, &iter_stats, samount, -1);
 
@@ -547,24 +562,61 @@ static void display_stats()
 	gtk_text_buffer_insert(buffer_stats, &iter_stats, fn, -1);
 	gtk_text_buffer_insert(buffer_stats, &iter_stats, val, -1);
 	free(val);
-	camnt = add_dp(brif_stats.credits_amt);
-	strfmon(camount, sizeof(camount), "-%=15n\n\n", camnt);
-	str_pad(fn, "         Credits total", flen, " ", PAD_RIGHT);
+	/* Total of credits (net) */
+	camnt = add_dp(brif_stats.credits_amt - brif_stats.credits_vat_amt);
+	strfmon(camount, sizeof(camount), "%=15n\n", camnt);
+	str_pad(fn, "   Credits total (net)", flen, " ", PAD_RIGHT);
+	gtk_text_buffer_insert(buffer_stats, &iter_stats, fn, -1);
+	gtk_text_buffer_insert(buffer_stats, &iter_stats, camount, -1);
+	/* Total of credits VAT */
+	camnt = add_dp(brif_stats.credits_vat_amt);
+	strfmon(camount, sizeof(camount), "%=15n\n\n", camnt);
+	str_pad(fn, "     Credits VAT total", flen, " ", PAD_RIGHT);
 	gtk_text_buffer_insert(buffer_stats, &iter_stats, fn, -1);
 	gtk_text_buffer_insert(buffer_stats, &iter_stats, camount, -1);
 
-	/* Amount from main record */
-	amnt = add_dp(brif_stats.amount);
+	/* Total NET amount, sales - credits */
+	amnt = add_dp((brif_stats.sales_amt - brif_stats.sales_vat_amt) -
+						(brif_stats.credits_amt -
+						brif_stats.credits_vat_amt));
 	strfmon(famount, sizeof(famount), "%=15n\n", amnt);
-	str_pad(fn, "File total", flen, " ", PAD_RIGHT);
+	str_pad(fn, "File total (net) S-R", flen, " ", PAD_RIGHT);
 	gtk_text_buffer_insert(buffer_stats, &iter_stats, fn, -1);
 	gtk_text_buffer_insert(buffer_stats, &iter_stats, famount, -1);
-	
+
+	/* VAT transaction amount, sales - credits */
+	amnt = add_dp(brif_stats.sales_vat_amt - brif_stats.credits_vat_amt);
+	str_pad(fn, "VAT total S-R", flen, " ", PAD_RIGHT);
+	gtk_text_buffer_insert(buffer_stats, &iter_stats, fn, -1);
+	strfmon(famount, sizeof(famount), "%=15n\n\n", amnt);
+	gtk_text_buffer_insert(buffer_stats, &iter_stats, famount, -1);
+
+	/* Total NET amount */
+	amnt = add_dp(brif_stats.amount - brif_stats.sales_vat_amt -
+						brif_stats.credits_vat_amt);
+	strfmon(famount, sizeof(famount), "%=15n\n", amnt);
+	str_pad(fn, "File total (net)", flen, " ", PAD_RIGHT);
+	gtk_text_buffer_insert(buffer_stats, &iter_stats, fn, -1);
+	gtk_text_buffer_insert(buffer_stats, &iter_stats, famount, -1);
+
 	/* VAT transaction amount */
-	amnt = add_dp(brif_stats.vat_ta);
+	amnt = add_dp(brif_stats.sales_vat_amt + brif_stats.credits_vat_amt);
 	str_pad(fn, "VAT total", flen, " ", PAD_RIGHT);
 	gtk_text_buffer_insert(buffer_stats, &iter_stats, fn, -1);
-	strfmon(famount, sizeof(famount), "%=15n", amnt);
+	strfmon(famount, sizeof(famount), "%=15n\n\n", amnt);
+	gtk_text_buffer_insert(buffer_stats, &iter_stats, famount, -1);
+
+	/* Total GROSS amount, sales - credits*/
+	amnt = add_dp(brif_stats.sales_amt - brif_stats.credits_amt);
+	strfmon(famount, sizeof(famount), "%=15n\n", amnt);
+	str_pad(fn, "File total (gross) S-R", flen, " ", PAD_RIGHT);
+	gtk_text_buffer_insert(buffer_stats, &iter_stats, fn, -1);
+	gtk_text_buffer_insert(buffer_stats, &iter_stats, famount, -1);
+	/* Total GROSS amount */
+	amnt = add_dp(brif_stats.amount);
+	strfmon(famount, sizeof(famount), "%=15n\n", amnt);
+	str_pad(fn, "File total (gross)", flen, " ", PAD_RIGHT);
+	gtk_text_buffer_insert(buffer_stats, &iter_stats, fn, -1);
 	gtk_text_buffer_insert(buffer_stats, &iter_stats, famount, -1);
 }
 
