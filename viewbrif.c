@@ -32,7 +32,7 @@
 #include "brif_spec.h"
 
 /* Update for application version. */
-#define VERSION		"023"
+#define VERSION		"023.90"
 
 /*
  * DEBUG levels
@@ -328,7 +328,8 @@ static void cb_file_chooser(GtkWidget *widget, gpointer data)
 	}
 
 	gtk_widget_destroy(file_chooser);
-	set_window_title(data, filename);
+	if (filename)
+		set_window_title(data, filename);
 }
 
 static void cb_quit(GtkMenuItem *menuitem, gpointer user_data)
