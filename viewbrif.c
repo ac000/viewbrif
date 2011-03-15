@@ -141,7 +141,7 @@ static double add_dp(long int amount)
 	strncat(na2, na + strlen(na) - 2, 2);
 
 	da = atof(na2);
-        
+
 	if (DEBUG > 0)
 		printf("%f\t%s\t%s\n", da, na, na2);
 
@@ -158,34 +158,34 @@ static char *str_pad(char *newstr, char *str, int len, char *padchar, int just)
 	int ppos;
         
 	if (just == PAD_LEFT || just == PAD_RIGHT) {
-                padstr = malloc((len - strlen(str)) + 1);
-                memset(padstr, '\0', (len - strlen(str)) + 1);
+		padstr = malloc((len - strlen(str)) + 1);
+		memset(padstr, '\0', (len - strlen(str)) + 1);
 
-                for (i = 0; i < (len - strlen(str)); i++)
-                        strcat(padstr, padchar);
+		for (i = 0; i < (len - strlen(str)); i++)
+			strcat(padstr, padchar);
 
-                if (just == PAD_LEFT)
-                        sprintf(newstr, "%s%s", padstr, str);
-                else if (just == PAD_RIGHT)
-                        sprintf(newstr, "%s%s", str, padstr);
-        } else if (just == PAD_CENT) {
-                padstr = malloc(len + 1);
-                memset(padstr, '\0', len + 1);
+		if (just == PAD_LEFT)
+			sprintf(newstr, "%s%s", padstr, str);
+		else if (just == PAD_RIGHT)
+			sprintf(newstr, "%s%s", str, padstr);
+	} else if (just == PAD_CENT) {
+		padstr = malloc(len + 1);
+		memset(padstr, '\0', len + 1);
 
-                for (i = 0; i < len; i++)
-                        strcat(padstr, padchar);
+		for (i = 0; i < len; i++)
+			strcat(padstr, padchar);
 
-                ppos = (len - strlen(str)) / 2;
-                strncpy(padstr + ppos, str, strlen(str));
-                strcpy(newstr, padstr);
-        }
+		ppos = (len - strlen(str)) / 2;
+		strncpy(padstr + ppos, str, strlen(str));
+		strcpy(newstr, padstr);
+	}
 
 	if (DEBUG > 3) {
-        	printf("Original string = %s, Pad string = %s, "
+		printf("Original string = %s, Pad string = %s, "
 				"Padded String = %s\n", str, padstr, newstr);
 	}
 
-        free(padstr);
+	free(padstr);
 
 	return newstr;
 }
@@ -196,17 +196,17 @@ static void create_tags(GtkTextBuffer *buffer)
 						PANGO_WEIGHT_BOLD, NULL);
 
 	gtk_text_buffer_create_tag(buffer, "blue_foreground", "foreground", 
-								"blue", NULL);
+						"blue", NULL);
 
 	gtk_text_buffer_create_tag(buffer, "green_foreground", "foreground",
-							"darkgreen", NULL);
-	
+						"darkgreen", NULL);
+
 	gtk_text_buffer_create_tag(buffer, "red_foreground", "foreground",
-                                                               "darkred", NULL);
-	
+						"darkred", NULL);
+
 	gtk_text_buffer_create_tag(buffer, "grey_background", "background", 
-							"lightgrey", NULL);
-	
+						"lightgrey", NULL);
+
 	gtk_text_buffer_create_tag(buffer, "orange_background", 
 						"background", "#ffd24B", NULL);
 
@@ -223,7 +223,7 @@ static gboolean find_text(GtkTextBuffer *buffer, const gchar *text,
 	gboolean found;
 
 	found = gtk_text_iter_forward_search(iter, text, 0, &mstart, &mend,
-									NULL);
+								NULL);
 
 	if (found) {
 		gtk_text_buffer_select_range(buffer, &mstart, &mend);
@@ -237,8 +237,7 @@ static gboolean find_text(GtkTextBuffer *buffer, const gchar *text,
 		else if (gtk_notebook_get_current_page(
 					GTK_NOTEBOOK(notebook)) == RAW_VIEW)
 			gtk_text_view_scroll_mark_onscreen(GTK_TEXT_VIEW(
-								text_view_raw),
-								last_pos);
+						text_view_raw), last_pos);
 
 		return TRUE;
 	}
@@ -291,13 +290,13 @@ static void cb_about_window()
 	gtk_window_set_title(GTK_WINDOW(about), "About ViewBRIF");
 	gtk_about_dialog_set_program_name(GTK_ABOUT_DIALOG(about), "ViewBRIF");
 	gtk_about_dialog_set_version(GTK_ABOUT_DIALOG(about), VERSION);
-	gtk_about_dialog_set_copyright(GTK_ABOUT_DIALOG(about), 
+	gtk_about_dialog_set_copyright(GTK_ABOUT_DIALOG(about),
 				"Copyright (C) 2006-2011 Andrew Clayton");
-	gtk_about_dialog_set_authors(GTK_ABOUT_DIALOG(about), 
+	gtk_about_dialog_set_authors(GTK_ABOUT_DIALOG(about),
 						(const gchar **)&authors);
 
 	/* Connect the close_button to destroy the widget */
-	g_signal_connect(G_OBJECT(about), "response", 
+	g_signal_connect(G_OBJECT(about), "response",
 					G_CALLBACK(gtk_widget_destroy), NULL);
 
 	gtk_widget_show(about);
@@ -373,41 +372,41 @@ static void process_line(char *fline, const int line_array[][2],
 	gdk_threads_leave();
 
 	while (strncmp(fline + fstart, "\r\n", 2) != 0) {
-                fstart = line_array[i][0];
-                flen = line_array[i][1];
-		
+		fstart = line_array[i][0];
+		flen = line_array[i][1];
+
 		sprintf(pos, "(%d, %d)", fstart + 1, flen);
 		sprintf(fnum, "F%d", i + 1);
 
 		if (DEBUG > 3)
 			printf("Field name = %s\n", field_headers[i]);
 
-                sprintf(fname, "[ %s", field_headers[i]);
+		sprintf(fname, "[ %s", field_headers[i]);
 		str_pad(pos, pos, 11, " ", PAD_RIGHT);
 		str_pad(fnum, fnum, 4, " ", PAD_RIGHT);
 		str_pad(fname, fname, 30, " ", PAD_RIGHT);		
 
 		gdk_threads_enter();
 		gtk_text_buffer_insert_with_tags_by_name(buffer, &iter, pos,
-                                                -1, "red_foreground", NULL);
+						-1, "red_foreground", NULL);
 		gtk_text_buffer_insert_with_tags_by_name(buffer, &iter, fnum,
 						-1, "red_foreground", NULL);
 		gtk_text_buffer_insert_with_tags_by_name(buffer, &iter, fname,
 						-1, "blue_foreground", NULL);
 		gtk_text_buffer_insert_with_tags_by_name(buffer, &iter, "] ",
-                                                -1, "blue_foreground", NULL);
-		
+						-1, "blue_foreground", NULL);
+
 		memset(data, '\0', 301);
 		strncpy(data, fline + fstart, flen);
 		strcat(data, "\n");
-		gtk_text_buffer_insert_with_tags_by_name(buffer, &iter, data, 
+		gtk_text_buffer_insert_with_tags_by_name(buffer, &iter, data,
 						-1, "orange_background", NULL);
 		gdk_flush();
 		gdk_threads_leave();
 
 		line_pos += flen;
 		i++;
-		
+
 		if (DEBUG > 2)
 			printf("Line: %s\n", data);
 	}
@@ -432,26 +431,25 @@ static void display_raw_line(char *fline, const int line_array[][2])
 	gtk_text_buffer_get_end_iter(buffer_raw, &iter_raw);
 
 	sprintf(ln, "%-6d", line_no - 1);
- 	gtk_text_buffer_insert_with_tags_by_name(buffer_raw, &iter_raw, ln, -1,
+	gtk_text_buffer_insert_with_tags_by_name(buffer_raw, &iter_raw, ln, -1,
 						"lightblue_background", NULL);
-	
+
 	while (strncmp(fline + fstart, "\r\n", 2) != 0) {
 		fstart = line_array[i][0];
 		flen = line_array[i][1];
 		memset(data, '\0', 301);
 		strncpy(data, fline + fstart, flen);		
-		
+
 		if (color_flag == 0) {
-			gtk_text_buffer_insert(buffer_raw, &iter_raw, data, 
-									-1);
+			gtk_text_buffer_insert(buffer_raw, &iter_raw, data, -1);
 			color_flag = 1;
 		} else if (color_flag == 1) {
 			gtk_text_buffer_insert_with_tags_by_name(buffer_raw, 
-							&iter_raw, data, -1, 
+						&iter_raw, data, -1,
 						"grey_background", NULL);
 			color_flag = 0;
 		}
-	
+
 		i++;
 	}
 }
@@ -523,7 +521,7 @@ static void display_stats()
 	gtk_text_buffer_insert(buffer_stats, &iter_stats, val, -1);
 	free(val);
 	gtk_text_buffer_insert(buffer_stats, &iter_stats, " bytes\n\n", -1);
-	
+
 	/* Number of transactions */
 	val = malloc(sizeof(brif_stats.trans) + 2);
 	memset(val, '\0', sizeof(brif_stats.trans) + 2);
@@ -704,14 +702,14 @@ static void read_file(char *fn)
 	/* Pretty print filename */
 	buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text_view));
 	gtk_text_buffer_get_start_iter(buffer, &iter);
-	
+
 	/* Get the raw buffer */
 	buffer_raw = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text_view_raw));
 	gtk_text_buffer_get_start_iter(buffer_raw, &iter_raw);       
 
 	/* Get the stats buffer */
-        buffer_stats = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text_view_stats));
-        gtk_text_buffer_get_start_iter(buffer_stats, &iter_stats);
+	buffer_stats = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text_view_stats));
+	gtk_text_buffer_get_start_iter(buffer_stats, &iter_stats);
 
 	/* Create the text tags for the text buffers */
 	create_tags(buffer);
@@ -724,11 +722,11 @@ static void read_file(char *fn)
 	 * If the file size is NOT a multiple of 300 or is 0 size, 
 	 * don't read it in. Instead display an error message to 
 	 * the user.
- 	 */ 
+	 */
 	if ((st.st_size % 300) != 0) {
-		sprintf(emesg, 
-		"ERROR: Size (%lu) of file (%s) is not a multiple of 300.", 
-								st.st_size, fn);
+		sprintf(emesg, "ERROR: Size (%lu) of file (%s) is not a "
+							"multiple of 300.",
+							st.st_size, fn);
 		printf("%s\n", emesg);
 		gdk_threads_enter();
 		gtk_text_buffer_insert_with_tags_by_name(buffer, &iter,
@@ -826,8 +824,8 @@ static void read_file(char *fn)
 			printf("Line length = %d\n", line_pos);
 
 		line_pos = 0;
-        }
-	
+	}
+
 	munmap(bf_map, st.st_size);
 }
 
@@ -848,7 +846,7 @@ int main(int argc, char *argv[])
 	GtkWidget *vbox;
 	GtkWidget *menubar;
 	GtkWidget *filemenu;
-    	GtkWidget *filemenu_menu;
+	GtkWidget *filemenu_menu;
 	GtkWidget *filemenu_new_instance;
 	GtkWidget *filemenu_open;
 	GtkWidget *filemenu_quit;
@@ -869,17 +867,17 @@ int main(int argc, char *argv[])
 	gdk_threads_init();
 	gdk_threads_enter();
 	gtk_init(&argc, &argv);
-    
+
 	accel_group = gtk_accel_group_new();
 
 	/* Main window */
 	window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 	g_signal_connect(G_OBJECT(window), "destroy",
-                                                G_CALLBACK(cb_quit), NULL);
-  	gtk_window_set_title(GTK_WINDOW(window), "ViewBRIF");	
+						G_CALLBACK(cb_quit), NULL);
+	gtk_window_set_title(GTK_WINDOW(window), "ViewBRIF");
 	gtk_container_set_border_width(GTK_CONTAINER(window), 0);
-    	gtk_widget_set_size_request(window, 700, 800);
-	
+	gtk_widget_set_size_request(window, 700, 800);
+
 	/* vbox to hold stuff */
 	vbox = gtk_vbox_new(FALSE, 0);
 	gtk_widget_show(vbox);
@@ -889,14 +887,14 @@ int main(int argc, char *argv[])
 	menubar = gtk_menu_bar_new();
 	gtk_widget_show(menubar);
 	gtk_box_pack_start(GTK_BOX(vbox), menubar, FALSE, FALSE, 0);
-	
+
 	/* Create the file menu */
 	filemenu = gtk_menu_item_new_with_mnemonic(("_File"));
 	gtk_widget_show(filemenu);
 	gtk_container_add(GTK_CONTAINER(menubar), filemenu);
 
- 	filemenu_menu = gtk_menu_new();
-  	gtk_menu_item_set_submenu(GTK_MENU_ITEM(filemenu), filemenu_menu);
+	filemenu_menu = gtk_menu_new();
+	gtk_menu_item_set_submenu(GTK_MENU_ITEM(filemenu), filemenu_menu);
 
 	/* Create the new menu item */
 	filemenu_new_instance = gtk_image_menu_item_new_from_stock("gtk-new",
@@ -911,7 +909,7 @@ int main(int argc, char *argv[])
 	gtk_container_add(GTK_CONTAINER(filemenu_menu), filemenu_open);
 
 	separator_menu_item = gtk_separator_menu_item_new();
-  	gtk_widget_show(separator_menu_item);
+	gtk_widget_show(separator_menu_item);
 	gtk_container_add(GTK_CONTAINER(filemenu_menu), separator_menu_item);
 	gtk_widget_set_sensitive(separator_menu_item, FALSE);
 
@@ -922,25 +920,26 @@ int main(int argc, char *argv[])
 	gtk_container_add(GTK_CONTAINER(filemenu_menu), filemenu_quit);
 
 	/* Create the help menu */
-        helpmenu = gtk_menu_item_new_with_mnemonic(("_Help"));
-        gtk_widget_show(helpmenu);
-        gtk_container_add(GTK_CONTAINER(menubar), helpmenu);
+	helpmenu = gtk_menu_item_new_with_mnemonic(("_Help"));
+	gtk_widget_show(helpmenu);
+	gtk_container_add(GTK_CONTAINER(menubar), helpmenu);
 
 	helpmenu_menu = gtk_menu_new();
-        gtk_menu_item_set_submenu(GTK_MENU_ITEM(helpmenu), helpmenu_menu);		
+	gtk_menu_item_set_submenu(GTK_MENU_ITEM(helpmenu), helpmenu_menu);
+
 	/* Create the about menu item */
-        helpmenu_about = gtk_image_menu_item_new_from_stock("gtk-about",
-                                                                accel_group);
-        gtk_widget_show(helpmenu_about);
-        gtk_container_add(GTK_CONTAINER(helpmenu_menu), helpmenu_about);
+	helpmenu_about = gtk_image_menu_item_new_from_stock("gtk-about",
+								accel_group);
+	gtk_widget_show(helpmenu_about);
+	gtk_container_add(GTK_CONTAINER(helpmenu_menu), helpmenu_about);
 
 	/* Create a notebook */
-        notebook = gtk_notebook_new();
+	notebook = gtk_notebook_new();
 	gtk_notebook_set_tab_pos(GTK_NOTEBOOK(notebook), GTK_POS_TOP);
 	gtk_widget_show(notebook);
 	gtk_box_pack_start(GTK_BOX(vbox), notebook, TRUE, TRUE, 0);
 	gtk_container_set_border_width(GTK_CONTAINER(notebook), 10);
-	
+
 	/* Create a new scrolled window for the split view. */
 	scrolled_window = gtk_scrolled_window_new(NULL, NULL);
 	gtk_widget_show(scrolled_window);
@@ -949,10 +948,10 @@ int main(int argc, char *argv[])
 
 	/* 
 	 * The policy is one of GTK_POLICY AUTOMATIC, or GTK_POLICY_ALWAYS.
-     	 * GTK_POLICY_AUTOMATIC will automatically decide whether you need
-     	 * scrollbars, whereas GTK_POLICY_ALWAYS will always leave the 
-	 * scrollbars there. The first one is the horizontal scrollbar, 
-	 * the second, the vertical. 
+	 * GTK_POLICY_AUTOMATIC will automatically decide whether you need
+	 * scrollbars, whereas GTK_POLICY_ALWAYS will always leave the
+	 * scrollbars there. The first one is the horizontal scrollbar,
+	 * the second, the vertical.
 	 */
 	gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scrolled_window),
 				GTK_POLICY_AUTOMATIC, GTK_POLICY_ALWAYS);
@@ -971,20 +970,20 @@ int main(int argc, char *argv[])
 	gtk_window_add_accel_group(GTK_WINDOW(window), accel_group);		
 
 	/* Create a new scrolled window for the raw view. */
-        scrolled_window_raw = gtk_scrolled_window_new(NULL, NULL);
-        gtk_widget_show(scrolled_window_raw);
-        gtk_container_add(GTK_CONTAINER(notebook), scrolled_window_raw);
-        gtk_container_set_border_width(GTK_CONTAINER(scrolled_window_raw), 5);
+	scrolled_window_raw = gtk_scrolled_window_new(NULL, NULL);
+	gtk_widget_show(scrolled_window_raw);
+	gtk_container_add(GTK_CONTAINER(notebook), scrolled_window_raw);
+	gtk_container_set_border_width(GTK_CONTAINER(scrolled_window_raw), 5);
 
-        /*
-         * The policy is one of GTK_POLICY AUTOMATIC, or GTK_POLICY_ALWAYS.
-         * GTK_POLICY_AUTOMATIC will automatically decide whether you need
-         * scrollbars, whereas GTK_POLICY_ALWAYS will always leave the
-         * scrollbars there. The first one is the horizontal scrollbar,
-         * the second, the vertical.
-         */
-        gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scrolled_window_raw),
-                                GTK_POLICY_AUTOMATIC, GTK_POLICY_ALWAYS);
+	/*
+	 * The policy is one of GTK_POLICY AUTOMATIC, or GTK_POLICY_ALWAYS.
+	 * GTK_POLICY_AUTOMATIC will automatically decide whether you need
+	 * scrollbars, whereas GTK_POLICY_ALWAYS will always leave the
+	 * scrollbars there. The first one is the horizontal scrollbar,
+	 * the second, the vertical.
+	 */
+	gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scrolled_window_raw),
+				GTK_POLICY_AUTOMATIC, GTK_POLICY_ALWAYS);
 
 	/*
 	 * Create a text view for the raw view and set it RO with
@@ -1011,18 +1010,18 @@ int main(int argc, char *argv[])
 	/* Set tab labels */
 	split_label = gtk_label_new(" Split View ");
 	gtk_notebook_set_tab_label(GTK_NOTEBOOK(notebook), scrolled_window,
-							split_label);
+								split_label);
 	raw_label = gtk_label_new(" Raw View ");
 	gtk_notebook_set_tab_label(GTK_NOTEBOOK(notebook), scrolled_window_raw,
-                                                        raw_label);
+								raw_label);
 
 	stats_label = gtk_label_new(" Stats ");
-        gtk_notebook_set_tab_label(GTK_NOTEBOOK(notebook), text_view_stats,
-                                                        stats_label);
+	gtk_notebook_set_tab_label(GTK_NOTEBOOK(notebook), text_view_stats,
+								stats_label);
 
 	/* Menu item callbacks */
 	g_signal_connect((gpointer)filemenu_quit, "activate",
-						G_CALLBACK(cb_quit), NULL);
+					G_CALLBACK(cb_quit), NULL);
 	g_signal_connect((gpointer)filemenu_new_instance, "activate",
 					G_CALLBACK(cb_new_instance), NULL);
 	g_signal_connect((gpointer)filemenu_open, "activate",
@@ -1065,6 +1064,6 @@ int main(int argc, char *argv[])
 
 	gtk_main();
 	gdk_threads_leave();
-	
+
 	exit(0);
 }
