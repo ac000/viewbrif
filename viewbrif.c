@@ -107,7 +107,7 @@ static void set_window_title(GtkWidget *window, char *extra_title)
 {
 	char *window_title;
 
-	window_title = malloc(12 + strlen(extra_title) * sizeof(char *));
+	window_title = malloc(strlen(extra_title) + 12);
 	sprintf(window_title, "ViewBRIF (%s)", extra_title);
 	gtk_window_set_title(GTK_WINDOW(window), window_title);
 	free(window_title);
@@ -124,12 +124,12 @@ static double add_dp(long int amount)
 	double da;
 
 	/* brif amount format */
-	na = (char *)malloc(sizeof(amount) + 1);
+	na = malloc(sizeof(amount) + 1);
 	memset(na, '\0', sizeof(amount) + 1);
 	sprintf(na, "%ld", amount);
 
 	/* brif amount format with the dp added */
-	na2 = (char *)malloc(sizeof(na) + 2);
+	na2 = malloc(sizeof(na) + 2);
 	memset(na2, '\0', sizeof(na) + 2);
 
 	/* If we got less than 100p prepend a 0 to the value for strfmon() */
@@ -158,8 +158,7 @@ static char *str_pad(char *newstr, char *str, int len, char *padchar, int just)
 	int ppos;
         
 	if (just == PAD_LEFT || just == PAD_RIGHT) {
-                padstr = (char *)malloc(sizeof(char) * (len - strlen(str))
-                                                                        + 1);
+                padstr = malloc((len - strlen(str)) + 1);
                 memset(padstr, '\0', sizeof(char) * (len - strlen(str)) + 1);
 
                 for (i = 0; i < (len - strlen(str)); i++)
@@ -170,7 +169,7 @@ static char *str_pad(char *newstr, char *str, int len, char *padchar, int just)
                 else if (just == PAD_RIGHT)
                         sprintf(newstr, "%s%s", str, padstr);
         } else if (just == PAD_CENT) {
-                padstr = (char *)malloc(sizeof(char) * len + 1);
+                padstr = malloc(len + 1);
                 memset(padstr, '\0', sizeof(char) * len + 1);
 
                 for (i = 0; i < len; i++)
@@ -516,7 +515,7 @@ static void display_stats()
 	gtk_text_buffer_get_end_iter(buffer_stats, &iter_stats);	
 
 	/* File Size */
-	val = (char *)malloc(sizeof(brif_stats.file_size) + 1);
+	val = malloc(sizeof(brif_stats.file_size) + 1);
 	memset(val, '\0', sizeof(brif_stats.file_size) + 1);
 	sprintf(val, "%ld", brif_stats.file_size);
 	str_pad(fn, "File size", flen, " ", PAD_RIGHT); 	
@@ -526,7 +525,7 @@ static void display_stats()
 	gtk_text_buffer_insert(buffer_stats, &iter_stats, " bytes\n\n", -1);
 	
 	/* Number of transactions */
-	val = (char *)malloc(sizeof(brif_stats.trans) + 2);
+	val = malloc(sizeof(brif_stats.trans) + 2);
 	memset(val, '\0', sizeof(brif_stats.trans) + 2);
 	sprintf(val, "%d\n\n", brif_stats.trans);
 	str_pad(fn, "Number of transactions", flen, " ", PAD_RIGHT);
@@ -535,7 +534,7 @@ static void display_stats()
 	free(val);
 
 	/* Number of sales */
-	val = (char *)malloc(sizeof(brif_stats.sales) + 2);
+	val = malloc(sizeof(brif_stats.sales) + 2);
 	memset(val, '\0', sizeof(brif_stats.sales) + 2);
 	sprintf(val, "%d\n", brif_stats.sales);
 	str_pad(fn, "                 Sales", flen, " ", PAD_RIGHT);
@@ -556,7 +555,7 @@ static void display_stats()
 	gtk_text_buffer_insert(buffer_stats, &iter_stats, samount, -1);
 
 	/* Number of credits */
-	val = (char *)malloc(sizeof(brif_stats.credits) + 3);
+	val = malloc(sizeof(brif_stats.credits) + 3);
 	memset(val, '\0', sizeof(brif_stats.credits) + 3);
 	sprintf(val, "%d\n", brif_stats.credits);
 	str_pad(fn, "               Credits", flen, " ", PAD_RIGHT);
