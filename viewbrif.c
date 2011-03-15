@@ -159,7 +159,7 @@ static char *str_pad(char *newstr, char *str, int len, char *padchar, int just)
         
 	if (just == PAD_LEFT || just == PAD_RIGHT) {
                 padstr = malloc((len - strlen(str)) + 1);
-                memset(padstr, '\0', sizeof(char) * (len - strlen(str)) + 1);
+                memset(padstr, '\0', (len - strlen(str)) + 1);
 
                 for (i = 0; i < (len - strlen(str)); i++)
                         strcat(padstr, padchar);
@@ -170,7 +170,7 @@ static char *str_pad(char *newstr, char *str, int len, char *padchar, int just)
                         sprintf(newstr, "%s%s", str, padstr);
         } else if (just == PAD_CENT) {
                 padstr = malloc(len + 1);
-                memset(padstr, '\0', sizeof(char) * len + 1);
+                memset(padstr, '\0', len + 1);
 
                 for (i = 0; i < len; i++)
                         strcat(padstr, padchar);
@@ -397,7 +397,7 @@ static void process_line(char *fline, const int line_array[][2],
 		gtk_text_buffer_insert_with_tags_by_name(buffer, &iter, "] ",
                                                 -1, "blue_foreground", NULL);
 		
-		memset(data, '\0', sizeof(char) * 301);
+		memset(data, '\0', 301);
 		strncpy(data, fline + fstart, flen);
 		strcat(data, "\n");
 		gtk_text_buffer_insert_with_tags_by_name(buffer, &iter, data, 
@@ -438,7 +438,7 @@ static void display_raw_line(char *fline, const int line_array[][2])
 	while (strncmp(fline + fstart, "\r\n", 2) != 0) {
 		fstart = line_array[i][0];
 		flen = line_array[i][1];
-		memset(data, '\0', sizeof(char) * 301);
+		memset(data, '\0', 301);
 		strncpy(data, fline + fstart, flen);		
 		
 		if (color_flag == 0) {
@@ -463,7 +463,7 @@ static void gather_stats(char *fline, const int line_array[][2])
 	char data[301];
 	static char trans_type[2] = "\0";
 
-	memset(data, '\0', sizeof(char) * 301);
+	memset(data, '\0', 301);
 
 	if (strncmp(fline + 1, "A", 1) == 0) {
 		brif_stats.trans++;
