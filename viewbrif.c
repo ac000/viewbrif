@@ -758,7 +758,7 @@ static void read_file(char *fn)
 	gdk_flush();
 	gdk_threads_leave();
 
-	bf_map = mmap(0, st.st_size, PROT_READ, MAP_SHARED, fd, 0);
+	bf_map = mmap(0, st.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
 	if (bf_map == MAP_FAILED) {
 		printf("mmap() failed.\n");
 		close(fd);
