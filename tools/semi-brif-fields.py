@@ -38,6 +38,7 @@ def do_purchasing_card_item(line):
 	print "\tF14 = " + line[115:127]
 	print "\tF15 = " + line[127:139]
 	print "\tF16 = " + line[139:151]
+	print "\tF18 = " + line[152:164]
 
 
 #
