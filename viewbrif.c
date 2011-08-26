@@ -28,11 +28,10 @@
 #include <gdk/gdkkeysyms.h>
 #include <gtk/gtk.h>
 
-#include "viewbrif.h"
 #include "brif_spec.h"
 
 /* Update for application version. */
-#define VERSION		"024"
+#define VERSION		"024.90"
 
 /*
  * DEBUG levels
@@ -302,34 +301,6 @@ static void cb_about_window()
 	gtk_widget_show(about);
 }
 
-static void cb_file_chooser(GtkWidget *widget, gpointer data)
-{
-	GtkWidget *file_chooser;
-	char *filename = NULL;
-
-	/* Create a new file selection widget */
-	file_chooser = gtk_file_chooser_dialog_new("File selection",
-						NULL,
-						GTK_FILE_CHOOSER_ACTION_OPEN,
-						GTK_STOCK_CANCEL,
-						GTK_RESPONSE_CANCEL,
-						GTK_STOCK_OPEN,
-						GTK_RESPONSE_ACCEPT,
-						NULL);
-
-	if (gtk_dialog_run(GTK_DIALOG(file_chooser)) == GTK_RESPONSE_ACCEPT) {
-		filename = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER
-								(file_chooser));
-		printf("Selected file = %s\n", filename);
-		g_thread_create((GThreadFunc)read_file_thread, filename,
-								FALSE, NULL);
-	}
-
-	gtk_widget_destroy(file_chooser);
-	if (filename)
-		set_window_title(data, filename);
-}
-
 static void cb_quit(GtkMenuItem *menuitem, gpointer user_data)
 {
 	gtk_main_quit();
@@ -350,6 +321,43 @@ static void cb_new_instance()
 			execlp("viewbrif", "viewbrif", (char *)NULL);
 		else
 			execlp("./viewbrif", "viewbrif", (char *)NULL);
+	}
+}
+
+static void display_raw_line(char *fline, const int line_array[][2])
+{
+	char data[301];
+	char ln[7];
+	int i = 0;
+	int fstart = 0;
+	int flen = 0;
+	int color_flag = 0;
+	GtkTextBuffer *buffer_raw;
+
+	buffer_raw = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text_view_raw));
+	gtk_text_buffer_get_end_iter(buffer_raw, &iter_raw);
+
+	sprintf(ln, "%-6d", line_no - 1);
+	gtk_text_buffer_insert_with_tags_by_name(buffer_raw, &iter_raw, ln, -1,
+						"lightblue_background", NULL);
+
+	while (strncmp(fline + fstart, "\r\n", 2) != 0) {
+		fstart = line_array[i][0];
+		flen = line_array[i][1];
+		memset(data, '\0', 301);
+		strncpy(data, fline + fstart, flen);
+
+		if (color_flag == 0) {
+			gtk_text_buffer_insert(buffer_raw, &iter_raw, data, -1);
+			color_flag = 1;
+		} else if (color_flag == 1) {
+			gtk_text_buffer_insert_with_tags_by_name(buffer_raw,
+						&iter_raw, data, -1,
+						"grey_background", NULL);
+			color_flag = 0;
+		}
+
+		i++;
 	}
 }
 
@@ -415,43 +423,6 @@ static void process_line(char *fline, const int line_array[][2],
 	display_raw_line(fline, line_array);
 	gdk_flush();
 	gdk_threads_leave();
-}
-
-static void display_raw_line(char *fline, const int line_array[][2])
-{
-	char data[301];
-	char ln[7];
-	int i = 0;
-	int fstart = 0;
-	int flen = 0;
-	int color_flag = 0;
-	GtkTextBuffer *buffer_raw;
-
-	buffer_raw = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text_view_raw));
-	gtk_text_buffer_get_end_iter(buffer_raw, &iter_raw);
-
-	sprintf(ln, "%-6d", line_no - 1);
-	gtk_text_buffer_insert_with_tags_by_name(buffer_raw, &iter_raw, ln, -1,
-						"lightblue_background", NULL);
-
-	while (strncmp(fline + fstart, "\r\n", 2) != 0) {
-		fstart = line_array[i][0];
-		flen = line_array[i][1];
-		memset(data, '\0', 301);
-		strncpy(data, fline + fstart, flen);		
-
-		if (color_flag == 0) {
-			gtk_text_buffer_insert(buffer_raw, &iter_raw, data, -1);
-			color_flag = 1;
-		} else if (color_flag == 1) {
-			gtk_text_buffer_insert_with_tags_by_name(buffer_raw, 
-						&iter_raw, data, -1,
-						"grey_background", NULL);
-			color_flag = 0;
-		}
-
-		i++;
-	}
 }
 
 static void gather_stats(char *fline, const int line_array[][2])
@@ -541,13 +512,13 @@ static void display_stats()
 	free(val);
 	/* Total of sales (net) */
 	samnt = add_dp(brif_stats.sales_amt - brif_stats.sales_vat_amt);
-	strfmon(samount, sizeof(samount), "%=15n\n", samnt);
+	strfmon(samount, sizeof(samount), " %!12n\n", samnt);
 	str_pad(fn, "     Sales total (net)", flen, " ", PAD_RIGHT);
 	gtk_text_buffer_insert(buffer_stats, &iter_stats, fn, -1);
 	gtk_text_buffer_insert(buffer_stats, &iter_stats, samount, -1);
 	/* Total of sales VAT */
 	samnt = add_dp(brif_stats.sales_vat_amt);
-	strfmon(samount, sizeof(samount), "%=15n\n\n", samnt);
+	strfmon(samount, sizeof(samount), " %!12n\n\n", samnt);
 	str_pad(fn, "       Sales VAT total", flen, " ", PAD_RIGHT);
 	gtk_text_buffer_insert(buffer_stats, &iter_stats, fn, -1);
 	gtk_text_buffer_insert(buffer_stats, &iter_stats, samount, -1);
@@ -562,13 +533,13 @@ static void display_stats()
 	free(val);
 	/* Total of credits (net) */
 	camnt = add_dp(brif_stats.credits_amt - brif_stats.credits_vat_amt);
-	strfmon(camount, sizeof(camount), "%=15n\n", camnt);
+	strfmon(camount, sizeof(camount), " %!12n\n", camnt);
 	str_pad(fn, "   Credits total (net)", flen, " ", PAD_RIGHT);
 	gtk_text_buffer_insert(buffer_stats, &iter_stats, fn, -1);
 	gtk_text_buffer_insert(buffer_stats, &iter_stats, camount, -1);
 	/* Total of credits VAT */
 	camnt = add_dp(brif_stats.credits_vat_amt);
-	strfmon(camount, sizeof(camount), "%=15n\n\n", camnt);
+	strfmon(camount, sizeof(camount), " %!12n\n\n", camnt);
 	str_pad(fn, "     Credits VAT total", flen, " ", PAD_RIGHT);
 	gtk_text_buffer_insert(buffer_stats, &iter_stats, fn, -1);
 	gtk_text_buffer_insert(buffer_stats, &iter_stats, camount, -1);
@@ -577,7 +548,7 @@ static void display_stats()
 	amnt = add_dp((brif_stats.sales_amt - brif_stats.sales_vat_amt) -
 						(brif_stats.credits_amt -
 						brif_stats.credits_vat_amt));
-	strfmon(famount, sizeof(famount), "%=15n\n", amnt);
+	strfmon(famount, sizeof(famount), " %!12n\n", amnt);
 	str_pad(fn, "File total (net) S-R", flen, " ", PAD_RIGHT);
 	gtk_text_buffer_insert(buffer_stats, &iter_stats, fn, -1);
 	gtk_text_buffer_insert(buffer_stats, &iter_stats, famount, -1);
@@ -586,13 +557,13 @@ static void display_stats()
 	amnt = add_dp(brif_stats.sales_vat_amt - brif_stats.credits_vat_amt);
 	str_pad(fn, "VAT total S-R", flen, " ", PAD_RIGHT);
 	gtk_text_buffer_insert(buffer_stats, &iter_stats, fn, -1);
-	strfmon(famount, sizeof(famount), "%=15n\n\n", amnt);
+	strfmon(famount, sizeof(famount), " %!12n\n\n", amnt);
 	gtk_text_buffer_insert(buffer_stats, &iter_stats, famount, -1);
 
 	/* Total NET amount */
 	amnt = add_dp(brif_stats.amount - brif_stats.sales_vat_amt -
 						brif_stats.credits_vat_amt);
-	strfmon(famount, sizeof(famount), "%=15n\n", amnt);
+	strfmon(famount, sizeof(famount), " %!12n\n", amnt);
 	str_pad(fn, "File total (net)", flen, " ", PAD_RIGHT);
 	gtk_text_buffer_insert(buffer_stats, &iter_stats, fn, -1);
 	gtk_text_buffer_insert(buffer_stats, &iter_stats, famount, -1);
@@ -601,18 +572,19 @@ static void display_stats()
 	amnt = add_dp(brif_stats.sales_vat_amt + brif_stats.credits_vat_amt);
 	str_pad(fn, "VAT total", flen, " ", PAD_RIGHT);
 	gtk_text_buffer_insert(buffer_stats, &iter_stats, fn, -1);
-	strfmon(famount, sizeof(famount), "%=15n\n\n", amnt);
+	strfmon(famount, sizeof(famount), " %!12n\n\n", amnt);
 	gtk_text_buffer_insert(buffer_stats, &iter_stats, famount, -1);
 
 	/* Total GROSS amount, sales - credits*/
 	amnt = add_dp(brif_stats.sales_amt - brif_stats.credits_amt);
-	strfmon(famount, sizeof(famount), "%=15n\n", amnt);
+	strfmon(famount, sizeof(famount), " %!12n\n", amnt);
 	str_pad(fn, "File total (gross) S-R", flen, " ", PAD_RIGHT);
 	gtk_text_buffer_insert(buffer_stats, &iter_stats, fn, -1);
 	gtk_text_buffer_insert(buffer_stats, &iter_stats, famount, -1);
+
 	/* Total GROSS amount */
 	amnt = add_dp(brif_stats.amount);
-	strfmon(famount, sizeof(famount), "%=15n\n", amnt);
+	strfmon(famount, sizeof(famount), " %!12n\n", amnt);
 	str_pad(fn, "File total (gross)", flen, " ", PAD_RIGHT);
 	gtk_text_buffer_insert(buffer_stats, &iter_stats, fn, -1);
 	gtk_text_buffer_insert(buffer_stats, &iter_stats, famount, -1);
@@ -836,6 +808,34 @@ static void *read_file_thread(char *arg)
 	read_file(fpath);
 
 	return 0;
+}
+
+static void cb_file_chooser(GtkWidget *widget, gpointer data)
+{
+	GtkWidget *file_chooser;
+	char *filename = NULL;
+
+	/* Create a new file selection widget */
+	file_chooser = gtk_file_chooser_dialog_new("File selection",
+						NULL,
+						GTK_FILE_CHOOSER_ACTION_OPEN,
+						GTK_STOCK_CANCEL,
+						GTK_RESPONSE_CANCEL,
+						GTK_STOCK_OPEN,
+						GTK_RESPONSE_ACCEPT,
+						NULL);
+
+	if (gtk_dialog_run(GTK_DIALOG(file_chooser)) == GTK_RESPONSE_ACCEPT) {
+		filename = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER
+								(file_chooser));
+		printf("Selected file = %s\n", filename);
+		g_thread_create((GThreadFunc)read_file_thread, filename,
+								FALSE, NULL);
+	}
+
+	gtk_widget_destroy(file_chooser);
+	if (filename)
+		set_window_title(data, filename);
 }
 
 int main(int argc, char *argv[])
