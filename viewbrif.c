@@ -10,6 +10,7 @@
  *
  */
 
+
 #define _GNU_SOURCE
 
 #include <stdio.h>
@@ -67,12 +68,12 @@ struct stats {
 	int trans;
 	int credits;
 	int sales;
-	long int amount;
-	long int sales_amt;
-	long int credits_amt;
-	long int sales_vat_amt;
-	long int credits_vat_amt;
-	long int file_size;
+	long amount;
+	long sales_amt;
+	long credits_amt;
+	long sales_vat_amt;
+	long credits_vat_amt;
+	long file_size;
 };
 
 struct stats brif_stats = {
@@ -117,7 +118,7 @@ static void set_window_title(GtkWidget *window, char *extra_title)
  * Takes a brif format amount, e.g 17520 and returns this value with
  * the decimal point added, i.e 175.20
  */
-static double add_dp(long int amount)
+static double add_dp(long amount)
 {
 	char *na;
 	char *na2;
