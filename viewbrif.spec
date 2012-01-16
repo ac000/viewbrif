@@ -1,7 +1,7 @@
 Summary:	GUI BRIF File Viewer
 Name:		viewbrif
 Version:	025
-Release:	1.pccl%{?dist}
+Release:	2.pccl%{?dist}
 Group:		Development/Tools
 License:	GPLv2
 Vendor:		PCCL
@@ -37,6 +37,9 @@ rm -rf $RPM_BUILD_ROOT
 /usr/share/pixmaps/viewbrif.png
 
 %changelog
+* Mon Jan 16 2012 Andrew Clayton <andrew@pccl.info> - 025-2.pccl
+- Icon update.
+
 * Sun Jan 15 2012 Andrew Clayton <andrew@pccl.info> - 025-1.pccl
 - Repackage with application icon.
 
