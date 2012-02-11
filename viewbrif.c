@@ -41,8 +41,8 @@
  * 1 Print stat debugging
  * 2 also print line lengths and which type of line is being processed
  * 3 Print line contents
- * 4 also lots of other stuff.  
- */ 
+ * 4 also lots of other stuff.
+ */
 #define DEBUG		0
 
 #define PAD_LEFT	0
@@ -77,9 +77,9 @@ struct stats {
 };
 
 struct stats brif_stats = {
-	0, 
-	0, 
-	0, 
+	0,
+	0,
+	0,
 	0,
 	0,
 	0,
@@ -157,7 +157,7 @@ static char *str_pad(char *newstr, char *str, int len, char *padchar, int just)
 	char *padstr;
 	int i;
 	int ppos;
-        
+
 	if (just == PAD_LEFT || just == PAD_RIGHT) {
 		padstr = malloc((len - strlen(str)) + 1);
 		memset(padstr, '\0', (len - strlen(str)) + 1);
@@ -193,10 +193,10 @@ static char *str_pad(char *newstr, char *str, int len, char *padchar, int just)
 
 static void create_tags(GtkTextBuffer *buffer)
 {
-	gtk_text_buffer_create_tag(buffer, "bold", "weight", 
+	gtk_text_buffer_create_tag(buffer, "bold", "weight",
 						PANGO_WEIGHT_BOLD, NULL);
 
-	gtk_text_buffer_create_tag(buffer, "blue_foreground", "foreground", 
+	gtk_text_buffer_create_tag(buffer, "blue_foreground", "foreground",
 						"blue", NULL);
 
 	gtk_text_buffer_create_tag(buffer, "green_foreground", "foreground",
@@ -205,13 +205,13 @@ static void create_tags(GtkTextBuffer *buffer)
 	gtk_text_buffer_create_tag(buffer, "red_foreground", "foreground",
 						"darkred", NULL);
 
-	gtk_text_buffer_create_tag(buffer, "grey_background", "background", 
+	gtk_text_buffer_create_tag(buffer, "grey_background", "background",
 						"lightgrey", NULL);
 
-	gtk_text_buffer_create_tag(buffer, "orange_background", 
+	gtk_text_buffer_create_tag(buffer, "orange_background",
 						"background", "#ffd24B", NULL);
 
-	gtk_text_buffer_create_tag(buffer, "lightblue_background", 
+	gtk_text_buffer_create_tag(buffer, "lightblue_background",
 						"background", "#cce4ff", NULL);
 }
 
@@ -394,7 +394,7 @@ static void process_line(char *fline, const int line_array[][2],
 		sprintf(fname, "[ %s", field_headers[i]);
 		str_pad(pos, pos, 11, " ", PAD_RIGHT);
 		str_pad(fnum, fnum, 4, " ", PAD_RIGHT);
-		str_pad(fname, fname, 30, " ", PAD_RIGHT);		
+		str_pad(fname, fname, 30, " ", PAD_RIGHT);
 
 		gdk_threads_enter();
 		gtk_text_buffer_insert_with_tags_by_name(buffer, &iter, pos,
@@ -483,13 +483,13 @@ static void display_stats()
 	setlocale(LC_ALL, "");
 
 	buffer_stats = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text_view_stats));
-	gtk_text_buffer_get_end_iter(buffer_stats, &iter_stats);	
+	gtk_text_buffer_get_end_iter(buffer_stats, &iter_stats);
 
 	/* File Size */
 	val = malloc(sizeof(brif_stats.file_size) + 1);
 	memset(val, '\0', sizeof(brif_stats.file_size) + 1);
 	sprintf(val, "%ld", brif_stats.file_size);
-	str_pad(fn, "File size", flen, " ", PAD_RIGHT); 	
+	str_pad(fn, "File size", flen, " ", PAD_RIGHT);
 	gtk_text_buffer_insert(buffer_stats, &iter_stats, fn, -1);
 	gtk_text_buffer_insert(buffer_stats, &iter_stats, val, -1);
 	free(val);
@@ -652,7 +652,7 @@ static void read_file(char *fn)
 	char *bf_map;
 	char emesg[255];
 	int fd;
-	int offset = 0;	
+	int offset = 0;
 	struct stat st;
 	GtkTextBuffer *buffer;
 	GtkTextBuffer *buffer_raw;
@@ -679,7 +679,7 @@ static void read_file(char *fn)
 
 	/* Get the raw buffer */
 	buffer_raw = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text_view_raw));
-	gtk_text_buffer_get_start_iter(buffer_raw, &iter_raw);       
+	gtk_text_buffer_get_start_iter(buffer_raw, &iter_raw);
 
 	/* Get the stats buffer */
 	buffer_stats = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text_view_stats));
@@ -693,8 +693,8 @@ static void read_file(char *fn)
 	gdk_threads_leave();
 
 	/*
-	 * If the file size is NOT a multiple of 300 or is 0 size, 
-	 * don't read it in. Instead display an error message to 
+	 * If the file size is NOT a multiple of 300 or is 0 size,
+	 * don't read it in. Instead display an error message to
 	 * the user.
 	 */
 	if ((st.st_size % 300) != 0) {
@@ -724,9 +724,9 @@ static void read_file(char *fn)
 	posix_fadvise(fd, 0, 0, POSIX_FADV_WILLNEED);
 
 	gdk_threads_enter();
-	gtk_text_buffer_insert_with_tags_by_name(buffer, &iter, 
+	gtk_text_buffer_insert_with_tags_by_name(buffer, &iter,
 					"Displaying file: ", -1, "bold", NULL);
-	gtk_text_buffer_insert_with_tags_by_name(buffer, &iter, fn, -1, 
+	gtk_text_buffer_insert_with_tags_by_name(buffer, &iter, fn, -1,
 					"blue_foreground", "bold", NULL);
 	gtk_text_buffer_insert(buffer, &iter, "\n\n", -1);
 	gdk_flush();
@@ -737,7 +737,7 @@ static void read_file(char *fn)
 		printf("mmap() failed.\n");
 		close(fd);
 		exit(1);
-	} 
+	}
 
 	close(fd);
 
@@ -770,7 +770,7 @@ static void read_file(char *fn)
 		if (DEBUG > 2)
 			printf("%c\n", (int)fline[0]);
 
-		/*      
+		/*
 		 * Catch non-printable characters, probably ctrl-z that
 		 * has been added to the end of the file by pceft
 		 */
@@ -905,7 +905,7 @@ int main(int argc, char *argv[])
 	gtk_container_add(GTK_CONTAINER(filemenu_menu), filemenu_new_instance);
 
 	/* Create the open menu item */
-	filemenu_open = gtk_image_menu_item_new_from_stock("gtk-open", 
+	filemenu_open = gtk_image_menu_item_new_from_stock("gtk-open",
 								accel_group);
 	gtk_widget_show(filemenu_open);
 	gtk_container_add(GTK_CONTAINER(filemenu_menu), filemenu_open);
@@ -916,7 +916,7 @@ int main(int argc, char *argv[])
 	gtk_widget_set_sensitive(separator_menu_item, FALSE);
 
 	/* Create the quit menu item */
-	filemenu_quit = gtk_image_menu_item_new_from_stock("gtk-quit", 
+	filemenu_quit = gtk_image_menu_item_new_from_stock("gtk-quit",
 								accel_group);
 	gtk_widget_show(filemenu_quit);
 	gtk_container_add(GTK_CONTAINER(filemenu_menu), filemenu_quit);
@@ -945,10 +945,10 @@ int main(int argc, char *argv[])
 	/* Create a new scrolled window for the split view. */
 	scrolled_window = gtk_scrolled_window_new(NULL, NULL);
 	gtk_widget_show(scrolled_window);
-	gtk_container_add(GTK_CONTAINER(notebook), scrolled_window);	
+	gtk_container_add(GTK_CONTAINER(notebook), scrolled_window),
 	gtk_container_set_border_width(GTK_CONTAINER(scrolled_window), 5);
 
-	/* 
+	/*
 	 * The policy is one of GTK_POLICY AUTOMATIC, or GTK_POLICY_ALWAYS.
 	 * GTK_POLICY_AUTOMATIC will automatically decide whether you need
 	 * scrollbars, whereas GTK_POLICY_ALWAYS will always leave the
@@ -958,10 +958,10 @@ int main(int argc, char *argv[])
 	gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scrolled_window),
 				GTK_POLICY_AUTOMATIC, GTK_POLICY_ALWAYS);
 
-	/* 
-	 * Create a text view for the split view and set it RO with 
-	 * invisible cursor. 
-	 */	
+	/*
+	 * Create a text view for the split view and set it RO with
+	 * invisible cursor.
+	 */
 	text_view = gtk_text_view_new();
 	gtk_widget_show(text_view);
 	gtk_container_add(GTK_CONTAINER(scrolled_window), text_view);
@@ -969,7 +969,7 @@ int main(int argc, char *argv[])
 	gtk_text_view_set_editable(GTK_TEXT_VIEW(text_view), FALSE);
 	gtk_text_view_set_cursor_visible(GTK_TEXT_VIEW(text_view), FALSE);
 
-	gtk_window_add_accel_group(GTK_WINDOW(window), accel_group);		
+	gtk_window_add_accel_group(GTK_WINDOW(window), accel_group);
 
 	/* Create a new scrolled window for the raw view. */
 	scrolled_window_raw = gtk_scrolled_window_new(NULL, NULL);
