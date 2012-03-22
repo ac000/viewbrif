@@ -88,7 +88,7 @@ struct stats brif_stats = {
 	0
 };
 
-static void reset_stats()
+static void reset_stats(void)
 {
 	brif_stats.trans	   = 0;
 	brif_stats.credits	   = 0;
@@ -279,7 +279,7 @@ static gboolean cb_search(GtkWidget *search_button, gpointer data)
 	return TRUE;
 }
 
-static void cb_about_window()
+static void cb_about_window(void)
 {
 	GtkWidget *about;
 	const gchar *authors[2] = { "Andrew Clayton <andrew@pccl.info>\n"
@@ -308,7 +308,7 @@ static void cb_quit(GtkMenuItem *menuitem, gpointer user_data)
 	gtk_main_quit();
 }
 
-static void cb_new_instance()
+static void cb_new_instance(void)
 {
 	pid_t pid;
 	struct sigaction sa;
@@ -466,7 +466,7 @@ static void gather_stats(char *fline, const int line_array[][2])
 	}
 }
 
-static void display_stats()
+static void display_stats(void)
 {
 	char *val;
 	char fn[31];
