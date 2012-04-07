@@ -253,8 +253,8 @@ static gboolean cb_search(GtkWidget *search_button, gpointer data)
 	GtkTextBuffer *buffer;
 	GtkTextIter iter;
 	GtkTextMark *last_pos;
-	static gboolean searched = FALSE;
-	static gboolean found = FALSE;
+	static bool searched = false;
+	static bool found = false;
 
 	text = gtk_entry_get_text(GTK_ENTRY(data));
 	if (gtk_notebook_get_current_page(GTK_NOTEBOOK(notebook)) == SPLIT_VIEW)
@@ -269,13 +269,13 @@ static gboolean cb_search(GtkWidget *search_button, gpointer data)
 	if (searched && last_pos != NULL) {
 		gtk_text_buffer_get_iter_at_mark(buffer, &iter, last_pos);
 	} else if (!found || last_pos == NULL) {
-		searched = TRUE;
+		searched = true;
 		gtk_text_buffer_get_start_iter(buffer, &iter);
 	}
 
 	found = find_text(buffer, text, &iter);
 	if (!found)
-		searched = FALSE;
+		searched = false;
 
 	return TRUE;
 }
