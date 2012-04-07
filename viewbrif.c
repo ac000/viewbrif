@@ -25,6 +25,7 @@
 #include <string.h>
 #include <monetary.h>
 #include <ctype.h>
+#include <stdbool.h>
 
 #include <glib.h>
 #include <gdk/gdkkeysyms.h>
@@ -333,7 +334,7 @@ static void display_raw_line(char *fline, const int line_array[][2])
 	int i = 0;
 	int fstart = 0;
 	int flen = 0;
-	int color_flag = 0;
+	bool color_flag = false;
 	GtkTextBuffer *buffer_raw;
 
 	buffer_raw = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text_view_raw));
@@ -349,14 +350,14 @@ static void display_raw_line(char *fline, const int line_array[][2])
 		memset(data, '\0', 301);
 		strncpy(data, fline + fstart, flen);
 
-		if (color_flag == 0) {
+		if (!color_flag) {
 			gtk_text_buffer_insert(buffer_raw, &iter_raw, data, -1);
-			color_flag = 1;
-		} else if (color_flag == 1) {
+			color_flag = true;
+		} else if (color_flag) {
 			gtk_text_buffer_insert_with_tags_by_name(buffer_raw,
 						&iter_raw, data, -1,
 						"grey_background", NULL);
-			color_flag = 0;
+			color_flag = false;
 		}
 
 		i++;
