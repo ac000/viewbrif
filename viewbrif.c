@@ -105,7 +105,7 @@ static void reset_stats(void)
 /*
  * Set the window title to 'ViewBRIF (/path/to/brifile)'
  */
-static void set_window_title(GtkWidget *window, char *extra_title)
+static void set_window_title(GtkWidget *window, const char *extra_title)
 {
 	char *window_title;
 
@@ -153,7 +153,8 @@ static double add_dp(long amount)
 	return da;
 }
 
-static char *str_pad(char *newstr, char *str, int len, char *padchar, int just)
+static char *str_pad(char *newstr, const char *str, int len,
+						const char *padchar, int just)
 {
 	char *padstr;
 	int i;
@@ -327,7 +328,7 @@ static void cb_new_instance(void)
 	}
 }
 
-static void display_raw_line(char *fline, const int line_array[][2])
+static void display_raw_line(const char *fline, const int line_array[][2])
 {
 	char data[301];
 	char ln[7];
@@ -364,7 +365,7 @@ static void display_raw_line(char *fline, const int line_array[][2])
 	}
 }
 
-static void process_line(char *fline, const int line_array[][2],
+static void process_line(const char *fline, const int line_array[][2],
 						const char *field_headers[])
 {
 	char pos[12];
@@ -428,7 +429,7 @@ static void process_line(char *fline, const int line_array[][2],
 	gdk_threads_leave();
 }
 
-static void gather_stats(char *fline, const int line_array[][2])
+static void gather_stats(const char *fline, const int line_array[][2])
 {
 	int fstart = 0;
 	int flen = 0;
@@ -593,7 +594,7 @@ static void display_stats(void)
 	gtk_text_buffer_insert(buffer_stats, &iter_stats, famount, -1);
 }
 
-static void do_main_record(char *fline)
+static void do_main_record(const char *fline)
 {
 	char hline[35];
 	GtkTextBuffer *buffer;
@@ -611,7 +612,7 @@ static void do_main_record(char *fline)
 	process_line(fline, mrl, mrn);
 }
 
-static void do_purchasing_card(char *fline)
+static void do_purchasing_card(const char *fline)
 {
 	char hline[35];
 	GtkTextBuffer *buffer;
@@ -629,7 +630,7 @@ static void do_purchasing_card(char *fline)
 	process_line(fline, pcl, pcln);
 }
 
-static void do_purchasing_card_item(char *fline)
+static void do_purchasing_card_item(const char *fline)
 {
 	char hline[35];
 	GtkTextBuffer *buffer;
@@ -647,7 +648,7 @@ static void do_purchasing_card_item(char *fline)
 	process_line(fline, pcil, pciln);
 }
 
-static void read_file(char *fn)
+static void read_file(const char *fn)
 {
 	char fline[300];
 	char *bf_map;
@@ -804,9 +805,9 @@ static void read_file(char *fn)
 	munmap(bf_map, st.st_size);
 }
 
-static void *read_file_thread(char *arg)
+static void *read_file_thread(const char *arg)
 {
-	char *fpath = (char *)arg;
+	const char *fpath = (char *)arg;
 
 	read_file(fpath);
 
