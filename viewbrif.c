@@ -74,7 +74,7 @@ struct stats {
 	long credits_amt;
 	long sales_vat_amt;
 	long credits_vat_amt;
-	long file_size;
+	off_t file_size;
 };
 
 struct stats brif_stats = {
@@ -654,7 +654,7 @@ static void read_file(const char *fn)
 	char *bf_map;
 	char emesg[255];
 	int fd;
-	int offset = 0;
+	off_t offset = 0;
 	struct stat st;
 	GtkTextBuffer *buffer;
 	GtkTextBuffer *buffer_raw;
@@ -700,7 +700,7 @@ static void read_file(const char *fn)
 	 * the user.
 	 */
 	if ((st.st_size % 300) != 0) {
-		sprintf(emesg, "ERROR: Size (%lu) of file (%s) is not a "
+		sprintf(emesg, "ERROR: Size (%ld) of file (%s) is not a "
 							"multiple of 300.",
 							st.st_size, fn);
 		printf("%s\n", emesg);
