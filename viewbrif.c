@@ -254,8 +254,8 @@ static gboolean cb_search(GtkWidget *search_button, gpointer data)
 	GtkTextBuffer *buffer;
 	GtkTextIter iter;
 	GtkTextMark *last_pos;
-	static bool searched = false;
-	static bool found = false;
+	static bool searched;
+	static bool found;
 
 	text = gtk_entry_get_text(GTK_ENTRY(data));
 	if (gtk_notebook_get_current_page(GTK_NOTEBOOK(notebook)) == SPLIT_VIEW)
