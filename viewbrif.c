@@ -807,10 +807,7 @@ static void read_file(const char *fn)
 
 static void *read_file_thread(const char *arg)
 {
-	const char *fpath = (char *)arg;
-
-	read_file(fpath);
-
+	read_file(arg);
 	return 0;
 }
 
