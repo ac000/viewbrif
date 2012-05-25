@@ -183,10 +183,9 @@ static char *str_pad(char *newstr, const char *str, int len,
 		strcpy(newstr, padstr);
 	}
 
-	if (DEBUG > 3) {
+	if (DEBUG > 3)
 		printf("Original string = %s, Pad string = %s, "
 				"Padded String = %s\n", str, padstr, newstr);
-	}
 
 	free(padstr);
 
