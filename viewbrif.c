@@ -737,7 +737,7 @@ static void read_file(const char *fn)
 	if (bf_map == MAP_FAILED) {
 		printf("mmap() failed.\n");
 		close(fd);
-		exit(1);
+		exit(EXIT_FAILURE);
 	}
 
 	close(fd);
@@ -1065,5 +1065,5 @@ int main(int argc, char *argv[])
 	gtk_main();
 	gdk_threads_leave();
 
-	exit(0);
+	exit(EXIT_SUCCESS);
 }
