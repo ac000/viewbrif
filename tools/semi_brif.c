@@ -135,8 +135,7 @@ int main(int argc, char **argv)
 		exit(EXIT_FAILURE);
 
 	fp = fopen(argv[1], "r");
-	while (!feof(fp)) {
-		fgets(line, BRIF_LINE_LEN, fp);
+	while (fgets(line, sizeof(line), fp) != NULL) {
 		if (line[2] == 'S' || line[2] == 'R')
 			do_main_record(line);
 		else if (line[3] == ' ')
