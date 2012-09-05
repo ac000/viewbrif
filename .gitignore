@@ -1,4 +1,5 @@
 viewbrif
 viewbrif.1.gz
 *.swp
+tools/bv2csv
 tools/semi_brif
