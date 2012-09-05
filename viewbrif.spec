@@ -1,7 +1,7 @@
 Summary:	GUI BRIF File Viewer
 Name:		viewbrif
 Version:	027
-Release:	0.pccl%{?dist}
+Release:	1.pccl%{?dist}
 Group:		Development/Tools
 License:	GPLv2
 Vendor:		PCCL
@@ -18,10 +18,12 @@ A GUI viewer for visualizing BRIF files.
 
 %build
 make
+make -C tools/ bv2csv
 
 %install
 rm -rf $RPM_BUILD_ROOT
 install -Dp -m0755 viewbrif $RPM_BUILD_ROOT/usr/bin/viewbrif
+install -Dp -m0755 tools/bv2csv $RPM_BUILD_ROOT/usr/bin/bv2csv
 install -Dp -m0644 viewbrif.1.gz $RPM_BUILD_ROOT/usr/share/man/man1/viewbrif.1.gz
 install -Dp -m0644 viewbrif.desktop $RPM_BUILD_ROOT/usr/share/applications/viewbrif.desktop
 install -Dp -m0644 viewbrif.png $RPM_BUILD_ROOT/usr/share/pixmaps/viewbrif.png
@@ -32,11 +34,15 @@ rm -rf $RPM_BUILD_ROOT
 %files
 %defattr(-,root,root)
 /usr/bin/viewbrif
+/usr/bin/bv2csv
 /usr/share/man/man1/viewbrif.1.gz
 /usr/share/applications/viewbrif.desktop
 /usr/share/pixmaps/viewbrif.png
 
 %changelog
+* Wed Sep 05 2012 Andrew Clayton <andrew@pccl.info> - 027-1.pccl
+- Actually build and install bv2csv
+
 * Wed Sep 05 2012 Andrew Clayton <andrew@pccl.info> - 027-0.pccl
 - Update for new version.
 - Adds a new utility; bv2csv
