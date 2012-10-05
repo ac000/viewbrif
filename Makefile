@@ -8,4 +8,4 @@ viewbrif: viewbrif.c
 	gzip -c viewbrif.1 > viewbrif.1.gz
 
 clean:
-	rm viewbrif viewbrif.1.gz
+	rm -f viewbrif viewbrif.1.gz
