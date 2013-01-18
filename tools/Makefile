@@ -5,4 +5,4 @@ bv2csv: bv2csv.c
 	gcc -Wall -g -O2 -std=c99 -o bv2csv bv2csv.c
 
 clean:
-	rm semi_brif
+	rm -f bv2csv semi_brif
