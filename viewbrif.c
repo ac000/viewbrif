@@ -121,36 +121,7 @@ static void set_window_title(GtkWidget *window, const char *extra_title)
  */
 static double add_dp(long amount)
 {
-	char *na;
-	char *na2;
-	double da;
-
-	/* brif amount format */
-	na = malloc(sizeof(amount) + 1);
-	memset(na, '\0', sizeof(amount) + 1);
-	sprintf(na, "%ld", amount);
-
-	/* brif amount format with the dp added */
-	na2 = malloc(sizeof(na) + 2);
-	memset(na2, '\0', sizeof(na) + 2);
-
-	/* If we got less than 100p prepend a 0 to the value for strfmon() */
-	if ((amount < 100 && amount > 0) || (amount > -100 && amount < 0))
-		strcat(na2, "0");
-
-	strncat(na2, na, strlen(na) - 2);
-	strcat(na2, ".");
-	strncat(na2, na + strlen(na) - 2, 2);
-
-	da = atof(na2);
-
-	if (DEBUG > 0)
-		printf("%f\t%s\t%s\n", da, na, na2);
-
-	free(na);
-	free(na2);
-
-	return da;
+	return (double)amount / 100.0;
 }
 
 static char *str_pad(char *newstr, const char *str, int len,
