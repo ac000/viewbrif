@@ -164,25 +164,25 @@ static char *str_pad(char *newstr, const char *str, int len,
 static void create_tags(GtkTextBuffer *buffer)
 {
 	gtk_text_buffer_create_tag(buffer, "bold", "weight",
-						PANGO_WEIGHT_BOLD, NULL);
+			PANGO_WEIGHT_BOLD, NULL);
 
 	gtk_text_buffer_create_tag(buffer, "blue_foreground", "foreground",
-						"blue", NULL);
+			"blue", NULL);
 
 	gtk_text_buffer_create_tag(buffer, "green_foreground", "foreground",
-						"darkgreen", NULL);
+			"darkgreen", NULL);
 
 	gtk_text_buffer_create_tag(buffer, "red_foreground", "foreground",
-						"darkred", NULL);
+			"darkred", NULL);
 
 	gtk_text_buffer_create_tag(buffer, "grey_background", "background",
-						"lightgrey", NULL);
+			"lightgrey", NULL);
 
 	gtk_text_buffer_create_tag(buffer, "orange_background",
-						"background", "#ffd24B", NULL);
+			"background", "#ffd24B", NULL);
 
 	gtk_text_buffer_create_tag(buffer, "lightblue_background",
-						"background", "#cce4ff", NULL);
+			"background", "#cce4ff", NULL);
 }
 
 static gboolean find_text(GtkTextBuffer *buffer, const gchar *text,
@@ -194,17 +194,17 @@ static gboolean find_text(GtkTextBuffer *buffer, const gchar *text,
 	gboolean found;
 
 	found = gtk_text_iter_forward_search(iter, text, 0, &mstart, &mend,
-								NULL);
+			NULL);
 
 	if (found) {
 		gtk_text_buffer_select_range(buffer, &mstart, &mend);
 		last_pos = gtk_text_buffer_create_mark(buffer, "last_pos",
-								&mend, FALSE);
+				&mend, FALSE);
 
 		if (gtk_notebook_get_current_page(
 					GTK_NOTEBOOK(notebook)) == SPLIT_VIEW)
 			gtk_text_view_scroll_mark_onscreen(GTK_TEXT_VIEW(
-							text_view), last_pos);
+						text_view), last_pos);
 		else if (gtk_notebook_get_current_page(
 					GTK_NOTEBOOK(notebook)) == RAW_VIEW)
 			gtk_text_view_scroll_mark_onscreen(GTK_TEXT_VIEW(
@@ -229,7 +229,7 @@ static gboolean cb_search(GtkWidget *search_button, gpointer data)
 	if (gtk_notebook_get_current_page(GTK_NOTEBOOK(notebook)) == SPLIT_VIEW)
 		buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text_view));
 	else if (gtk_notebook_get_current_page(GTK_NOTEBOOK(notebook)) ==
-								RAW_VIEW)
+			RAW_VIEW)
 		buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text_view_raw));
 	else
 		return TRUE;
@@ -253,8 +253,7 @@ static void cb_about_window(void)
 {
 	GtkWidget *about;
 	const gchar *authors[2] = { "Andrew Clayton <andrew@pccl.info>\n"
-				"Graham Thomson <g.thomson@pccl.co.uk>",
-							(const char *)NULL };
+		"Graham Thomson <g.thomson@pccl.co.uk>", (const char *)NULL };
 
 	about = gtk_about_dialog_new();
 
@@ -262,13 +261,13 @@ static void cb_about_window(void)
 	gtk_about_dialog_set_program_name(GTK_ABOUT_DIALOG(about), "ViewBRIF");
 	gtk_about_dialog_set_version(GTK_ABOUT_DIALOG(about), VERSION);
 	gtk_about_dialog_set_copyright(GTK_ABOUT_DIALOG(about),
-				"Copyright (C) 2006-2012 Andrew Clayton");
+			"Copyright (C) 2006-2012 Andrew Clayton");
 	gtk_about_dialog_set_authors(GTK_ABOUT_DIALOG(about),
-						(const gchar **)&authors);
+			(const gchar **)&authors);
 
 	/* Connect the close_button to destroy the widget */
 	g_signal_connect(G_OBJECT(about), "response",
-					G_CALLBACK(gtk_widget_destroy), NULL);
+			G_CALLBACK(gtk_widget_destroy), NULL);
 
 	gtk_widget_show(about);
 }
@@ -311,7 +310,7 @@ static void display_raw_line(const char *fline, const int line_array[][2])
 
 	sprintf(ln, "%-6d", line_no - 1);
 	gtk_text_buffer_insert_with_tags_by_name(buffer_raw, &iter_raw, ln, -1,
-						"lightblue_background", NULL);
+			"lightblue_background", NULL);
 
 	while (strncmp(fline + fstart, "\r\n", 2) != 0) {
 		fstart = line_array[i][0];
@@ -324,11 +323,10 @@ static void display_raw_line(const char *fline, const int line_array[][2])
 			color_flag = true;
 		} else if (color_flag) {
 			gtk_text_buffer_insert_with_tags_by_name(buffer_raw,
-						&iter_raw, data, -1,
-						"grey_background", NULL);
+					&iter_raw, data, -1, "grey_background",
+					NULL);
 			color_flag = false;
 		}
-
 		i++;
 	}
 }
@@ -368,19 +366,19 @@ static void process_line(const char *fline, const int line_array[][2],
 
 		gdk_threads_enter();
 		gtk_text_buffer_insert_with_tags_by_name(buffer, &iter, pos,
-						-1, "red_foreground", NULL);
+				-1, "red_foreground", NULL);
 		gtk_text_buffer_insert_with_tags_by_name(buffer, &iter, fnum,
-						-1, "red_foreground", NULL);
+				-1, "red_foreground", NULL);
 		gtk_text_buffer_insert_with_tags_by_name(buffer, &iter, fname,
-						-1, "blue_foreground", NULL);
+				-1, "blue_foreground", NULL);
 		gtk_text_buffer_insert_with_tags_by_name(buffer, &iter, "] ",
-						-1, "blue_foreground", NULL);
+				-1, "blue_foreground", NULL);
 
 		memset(data, '\0', 301);
 		strncpy(data, fline + fstart, flen);
 		strcat(data, "\n");
 		gtk_text_buffer_insert_with_tags_by_name(buffer, &iter, data,
-						-1, "orange_background", NULL);
+				-1, "orange_background", NULL);
 		gdk_flush();
 		gdk_threads_leave();
 
@@ -572,7 +570,7 @@ static void do_main_record(const char *fline)
 	buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text_view));
 	gtk_text_buffer_get_end_iter(buffer, &iter);
 	gtk_text_buffer_insert_with_tags_by_name(buffer, &iter, hline, -1,
-						"green_foreground", NULL);
+			"green_foreground", NULL);
 
 	gdk_flush();
 	gdk_threads_leave();
@@ -590,7 +588,7 @@ static void do_purchasing_card(const char *fline)
 	buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text_view));
 	gtk_text_buffer_get_end_iter(buffer, &iter);
 	gtk_text_buffer_insert_with_tags_by_name(buffer, &iter, hline, -1,
-						"green_foreground", NULL);
+			"green_foreground", NULL);
 
 	gdk_flush();
 	gdk_threads_leave();
@@ -608,7 +606,7 @@ static void do_purchasing_card_item(const char *fline)
 	buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text_view));
 	gtk_text_buffer_get_end_iter(buffer, &iter);
 	gtk_text_buffer_insert_with_tags_by_name(buffer, &iter, hline, -1,
-						"green_foreground", NULL);
+			"green_foreground", NULL);
 
 	gdk_flush();
 	gdk_threads_leave();
@@ -669,12 +667,11 @@ static void read_file(const char *fn)
 	 */
 	if ((st.st_size % 300) != 0) {
 		sprintf(emesg, "ERROR: Size (%ld) of file (%s) is not a "
-							"multiple of 300.",
-							st.st_size, fn);
+				"multiple of 300.", st.st_size, fn);
 		printf("%s\n", emesg);
 		gdk_threads_enter();
-		gtk_text_buffer_insert_with_tags_by_name(buffer, &iter,
-						emesg, -1, "bold", NULL);
+		gtk_text_buffer_insert_with_tags_by_name(buffer, &iter, emesg,
+				-1, "bold", NULL);
 		gdk_flush();
 		gdk_threads_leave();
 		return;
@@ -682,8 +679,8 @@ static void read_file(const char *fn)
 		sprintf(emesg, "ERROR: File (%s) seems to be empty.", fn);
 		printf("%s\n", emesg);
 		gdk_threads_enter();
-		gtk_text_buffer_insert_with_tags_by_name(buffer, &iter,
-						emesg, -1, "bold", NULL);
+		gtk_text_buffer_insert_with_tags_by_name(buffer, &iter, emesg,
+				-1, "bold", NULL);
 		gdk_flush();
 		gdk_threads_leave();
 		return;
@@ -695,9 +692,9 @@ static void read_file(const char *fn)
 
 	gdk_threads_enter();
 	gtk_text_buffer_insert_with_tags_by_name(buffer, &iter,
-					"Displaying file: ", -1, "bold", NULL);
+			"Displaying file: ", -1, "bold", NULL);
 	gtk_text_buffer_insert_with_tags_by_name(buffer, &iter, fn, -1,
-					"blue_foreground", "bold", NULL);
+			"blue_foreground", "bold", NULL);
 	gtk_text_buffer_insert(buffer, &iter, "\n\n", -1);
 	gdk_flush();
 	gdk_threads_leave();
@@ -786,20 +783,20 @@ static void cb_file_chooser(GtkWidget *widget, gpointer data)
 
 	/* Create a new file selection widget */
 	file_chooser = gtk_file_chooser_dialog_new("File selection",
-						NULL,
-						GTK_FILE_CHOOSER_ACTION_OPEN,
-						GTK_STOCK_CANCEL,
-						GTK_RESPONSE_CANCEL,
-						GTK_STOCK_OPEN,
-						GTK_RESPONSE_ACCEPT,
-						NULL);
+			NULL,
+			GTK_FILE_CHOOSER_ACTION_OPEN,
+			GTK_STOCK_CANCEL,
+			GTK_RESPONSE_CANCEL,
+			GTK_STOCK_OPEN,
+			GTK_RESPONSE_ACCEPT,
+			NULL);
 
 	if (gtk_dialog_run(GTK_DIALOG(file_chooser)) == GTK_RESPONSE_ACCEPT) {
 		filename = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER
-								(file_chooser));
+				(file_chooser));
 		printf("Selected file = %s\n", filename);
-		g_thread_create((GThreadFunc)read_file_thread, filename,
-								FALSE, NULL);
+		g_thread_create((GThreadFunc)read_file_thread, filename, FALSE,
+				NULL);
 	}
 
 	gtk_widget_destroy(file_chooser);
@@ -841,8 +838,8 @@ int main(int argc, char *argv[])
 
 	/* Main window */
 	window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-	g_signal_connect(G_OBJECT(window), "destroy",
-						G_CALLBACK(cb_quit), NULL);
+	g_signal_connect(G_OBJECT(window), "destroy", G_CALLBACK(cb_quit),
+			NULL);
 	gtk_window_set_title(GTK_WINDOW(window), "ViewBRIF");
 	gtk_container_set_border_width(GTK_CONTAINER(window), 0);
 	gtk_widget_set_size_request(window, 700, 800);
@@ -867,13 +864,13 @@ int main(int argc, char *argv[])
 
 	/* Create the new menu item */
 	filemenu_new_instance = gtk_image_menu_item_new_from_stock("gtk-new",
-								accel_group);
+			accel_group);
 	gtk_widget_show(filemenu_new_instance);
 	gtk_container_add(GTK_CONTAINER(filemenu_menu), filemenu_new_instance);
 
 	/* Create the open menu item */
 	filemenu_open = gtk_image_menu_item_new_from_stock("gtk-open",
-								accel_group);
+			accel_group);
 	gtk_widget_show(filemenu_open);
 	gtk_container_add(GTK_CONTAINER(filemenu_menu), filemenu_open);
 
@@ -884,7 +881,7 @@ int main(int argc, char *argv[])
 
 	/* Create the quit menu item */
 	filemenu_quit = gtk_image_menu_item_new_from_stock("gtk-quit",
-								accel_group);
+			accel_group);
 	gtk_widget_show(filemenu_quit);
 	gtk_container_add(GTK_CONTAINER(filemenu_menu), filemenu_quit);
 
@@ -898,7 +895,7 @@ int main(int argc, char *argv[])
 
 	/* Create the about menu item */
 	helpmenu_about = gtk_image_menu_item_new_from_stock("gtk-about",
-								accel_group);
+			accel_group);
 	gtk_widget_show(helpmenu_about);
 	gtk_container_add(GTK_CONTAINER(helpmenu_menu), helpmenu_about);
 
@@ -923,7 +920,7 @@ int main(int argc, char *argv[])
 	 * the second, the vertical.
 	 */
 	gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scrolled_window),
-				GTK_POLICY_AUTOMATIC, GTK_POLICY_ALWAYS);
+			GTK_POLICY_AUTOMATIC, GTK_POLICY_ALWAYS);
 
 	/*
 	 * Create a text view for the split view and set it RO with
@@ -952,7 +949,7 @@ int main(int argc, char *argv[])
 	 * the second, the vertical.
 	 */
 	gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scrolled_window_raw),
-				GTK_POLICY_AUTOMATIC, GTK_POLICY_ALWAYS);
+			GTK_POLICY_AUTOMATIC, GTK_POLICY_ALWAYS);
 
 	/*
 	 * Create a text view for the raw view and set it RO with
@@ -979,24 +976,24 @@ int main(int argc, char *argv[])
 	/* Set tab labels */
 	split_label = gtk_label_new(" Split View ");
 	gtk_notebook_set_tab_label(GTK_NOTEBOOK(notebook), scrolled_window,
-								split_label);
+			split_label);
 	raw_label = gtk_label_new(" Raw View ");
 	gtk_notebook_set_tab_label(GTK_NOTEBOOK(notebook), scrolled_window_raw,
-								raw_label);
+			raw_label);
 
 	stats_label = gtk_label_new(" Stats ");
 	gtk_notebook_set_tab_label(GTK_NOTEBOOK(notebook), text_view_stats,
-								stats_label);
+			stats_label);
 
 	/* Menu item callbacks */
 	g_signal_connect((gpointer)filemenu_quit, "activate",
-					G_CALLBACK(cb_quit), NULL);
+			G_CALLBACK(cb_quit), NULL);
 	g_signal_connect((gpointer)filemenu_new_instance, "activate",
-					G_CALLBACK(cb_new_instance), NULL);
+			G_CALLBACK(cb_new_instance), NULL);
 	g_signal_connect((gpointer)filemenu_open, "activate",
-					G_CALLBACK(cb_file_chooser), window);
+			G_CALLBACK(cb_file_chooser), window);
 	g_signal_connect((gpointer)helpmenu_about, "activate",
-					G_CALLBACK(cb_about_window), NULL);
+			G_CALLBACK(cb_about_window), NULL);
 
 	/* Change default font throughout the text views */
 	font_desc = pango_font_description_from_string("Monospace");
@@ -1014,20 +1011,20 @@ int main(int argc, char *argv[])
 	gtk_box_pack_start(GTK_BOX(hbox), search_entry, TRUE, TRUE, 0);
 	gtk_widget_show(search_entry);
 	g_signal_connect(G_OBJECT(search_entry), "activate",
-					G_CALLBACK(cb_search), search_entry);
+			G_CALLBACK(cb_search), search_entry);
 
 	search_button = gtk_button_new_with_label("Search");
 	gtk_box_pack_start(GTK_BOX(hbox), search_button, FALSE, FALSE, 0);
 	gtk_widget_show(search_button);
 	g_signal_connect(G_OBJECT(search_button), "clicked",
-					G_CALLBACK(cb_search), search_entry);
+			G_CALLBACK(cb_search), search_entry);
 
 	gtk_widget_show(window);
 
 	/* If we got a filename as an argument, open that up in the viewer. */
 	if (argc > 1) {
-		g_thread_create((GThreadFunc)read_file_thread, argv[1],
-								FALSE, NULL);
+		g_thread_create((GThreadFunc)read_file_thread, argv[1], FALSE,
+				NULL);
 		set_window_title(window, argv[1]);
 	}
 
