@@ -770,16 +770,19 @@ static void read_file(const char *fn)
 	munmap(bf_map, st.st_size);
 }
 
-static void *read_file_thread(const char *arg)
+static void *read_file_thread(char *file)
 {
-	read_file(arg);
+	char *fname = strdup(file);
+
+	read_file(fname);
+	free(fname);
+
 	return 0;
 }
 
 static void cb_file_chooser(GtkWidget *widget, gpointer data)
 {
 	GtkWidget *file_chooser;
-	char *filename = NULL;
 
 	/* Create a new file selection widget */
 	file_chooser = gtk_file_chooser_dialog_new("File selection",
@@ -792,16 +795,19 @@ static void cb_file_chooser(GtkWidget *widget, gpointer data)
 			NULL);
 
 	if (gtk_dialog_run(GTK_DIALOG(file_chooser)) == GTK_RESPONSE_ACCEPT) {
+		char *filename;
+
 		filename = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER
 				(file_chooser));
 		printf("Selected file = %s\n", filename);
 		g_thread_create((GThreadFunc)read_file_thread, filename, FALSE,
 				NULL);
+		if (filename)
+			set_window_title(data, filename);
+		g_free(filename);
 	}
 
 	gtk_widget_destroy(file_chooser);
-	if (filename)
-		set_window_title(data, filename);
 }
 
 int main(int argc, char *argv[])
