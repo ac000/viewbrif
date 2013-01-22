@@ -783,6 +783,8 @@ static void *read_file_thread(char *file)
 static void cb_file_chooser(GtkWidget *widget, gpointer data)
 {
 	GtkWidget *file_chooser;
+	GtkFileFilter *filter_all;
+	GtkFileFilter *filter_brif;
 
 	/* Create a new file selection widget */
 	file_chooser = gtk_file_chooser_dialog_new("File selection",
@@ -793,6 +795,22 @@ static void cb_file_chooser(GtkWidget *widget, gpointer data)
 			GTK_STOCK_OPEN,
 			GTK_RESPONSE_ACCEPT,
 			NULL);
+
+	filter_all = gtk_file_filter_new();
+	gtk_file_filter_add_pattern(filter_all, "*.*");
+	gtk_file_filter_set_name(filter_all, "All files (*.*)");
+
+	filter_brif = gtk_file_filter_new();
+	gtk_file_filter_add_pattern(filter_brif, "*.req");
+	gtk_file_filter_add_pattern(filter_brif, "*.ans");
+	gtk_file_filter_set_name(filter_brif, "BRIF files (*.ans, *.req)");
+
+	gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(file_chooser),
+			filter_all);
+	gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(file_chooser),
+			filter_brif);
+	gtk_file_chooser_set_filter(GTK_FILE_CHOOSER(file_chooser),
+			filter_brif);
 
 	if (gtk_dialog_run(GTK_DIALOG(file_chooser)) == GTK_RESPONSE_ACCEPT) {
 		char *filename;
