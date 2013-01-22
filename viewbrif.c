@@ -123,7 +123,7 @@ static double add_dp(long amount)
 }
 
 static char *str_pad(char *newstr, const char *str, int len,
-						const char *padchar, int just)
+		     const char *padchar, int just)
 {
 	char *padstr;
 	int i;
@@ -186,7 +186,7 @@ static void create_tags(GtkTextBuffer *buffer)
 }
 
 static gboolean find_text(GtkTextBuffer *buffer, const gchar *text,
-							GtkTextIter *iter)
+			  GtkTextIter *iter)
 {
 	GtkTextIter mstart;
 	GtkTextIter mend;
@@ -334,7 +334,7 @@ static void display_raw_line(const char *fline, const int line_array[][2])
 }
 
 static void process_line(const char *fline, const int line_array[][2],
-						const char *field_headers[])
+			 const char *field_headers[])
 {
 	char pos[12];
 	char fnum[5];
