@@ -5,6 +5,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include <limits.h>
+#include <math.h>
 
 #define BRIF_LINE_LEN	300
 
@@ -37,16 +38,9 @@ double cra = 1.0;
  * Takes a brif format amount, e.g 17520 and returns this value with
  * the decimal point added, i.e 175.20
  */
-static double add_dp(const char *src, int dp)
+static double add_dp(const char *str, int dp)
 {
-	char amount[32];
-
-	memset(amount, 0, sizeof(amount));
-	strncpy(amount, src, strlen(src) - dp);
-	strcat(amount, ".");
-	strncat(amount, src + strlen(src) - dp, dp);
-
-	return strtod(amount, NULL);
+	return strtoul(str, NULL, 10) / pow(10.0, (double)dp);
 }
 
 static void process_mr(const char *line, FILE *ofp)
