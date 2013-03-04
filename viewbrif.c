@@ -818,8 +818,8 @@ static void cb_file_chooser(GtkWidget *widget, gpointer data)
 		filename = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER
 				(file_chooser));
 		printf("Selected file = %s\n", filename);
-		g_thread_create((GThreadFunc)read_file_thread, filename, FALSE,
-				NULL);
+		g_thread_new("viewbrif", (GThreadFunc)read_file_thread,
+				filename);
 		if (filename)
 			set_window_title(data, filename);
 		g_free(filename);
@@ -853,7 +853,6 @@ int main(int argc, char *argv[])
 	GtkWidget *search_entry;
 	GtkWidget *search_button;
 
-	g_thread_init(NULL);
 	gdk_threads_init();
 	gdk_threads_enter();
 	gtk_init(&argc, &argv);
@@ -1047,8 +1046,8 @@ int main(int argc, char *argv[])
 
 	/* If we got a filename as an argument, open that up in the viewer. */
 	if (argc > 1) {
-		g_thread_create((GThreadFunc)read_file_thread, argv[1], FALSE,
-				NULL);
+		g_thread_new("viewbrif", (GThreadFunc)read_file_thread,
+				argv[1]);
 		set_window_title(window, argv[1]);
 	}
 
