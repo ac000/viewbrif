@@ -32,7 +32,7 @@
 #include "brif_spec.h"
 
 /* Update for application version. */
-#define VERSION		"028"
+#define VERSION		"029"
 
 /*
  * DEBUG levels
