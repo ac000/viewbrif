@@ -32,7 +32,7 @@
 #include "brif_spec.h"
 
 /* Update for application version. */
-#define VERSION		"030"
+#define VERSION		"030.90"
 
 /*
  * DEBUG levels
@@ -648,6 +648,7 @@ static void read_file(const char *fn)
 	brif_stats.file_size = st.st_size;
 
 	gdk_threads_enter();
+
 	/* Reset the text views */
 	gtk_text_view_set_buffer(GTK_TEXT_VIEW(text_view), NULL);
 	gtk_text_view_set_buffer(GTK_TEXT_VIEW(text_view_raw), NULL);
@@ -669,8 +670,6 @@ static void read_file(const char *fn)
 	create_tags(buffer);
 	create_tags(buffer_raw);
 	create_tags(buffer_stats);
-	gdk_flush();
-	gdk_threads_leave();
 
 	/*
 	 * If the file size is NOT a multiple of 300 or is 0 size,
@@ -681,20 +680,14 @@ static void read_file(const char *fn)
 		sprintf(emesg, "ERROR: Size (%ld) of file (%s) is not a "
 				"multiple of 300.", st.st_size, fn);
 		printf("%s\n", emesg);
-		gdk_threads_enter();
 		gtk_text_buffer_insert_with_tags_by_name(buffer, &iter, emesg,
 				-1, "bold", NULL);
-		gdk_flush();
-		gdk_threads_leave();
 		return;
 	} else if (st.st_size == 0) {
 		sprintf(emesg, "ERROR: File (%s) seems to be empty.", fn);
 		printf("%s\n", emesg);
-		gdk_threads_enter();
 		gtk_text_buffer_insert_with_tags_by_name(buffer, &iter, emesg,
 				-1, "bold", NULL);
-		gdk_flush();
-		gdk_threads_leave();
 		return;
 	}
 
@@ -702,12 +695,12 @@ static void read_file(const char *fn)
 	fd = open(fn, O_RDONLY);
 	posix_fadvise(fd, 0, 0, POSIX_FADV_WILLNEED);
 
-	gdk_threads_enter();
 	gtk_text_buffer_insert_with_tags_by_name(buffer, &iter,
 			"Displaying file: ", -1, "bold", NULL);
 	gtk_text_buffer_insert_with_tags_by_name(buffer, &iter, fn, -1,
 			"blue_foreground", "bold", NULL);
 	gtk_text_buffer_insert(buffer, &iter, "\n\n", -1);
+
 	gdk_flush();
 	gdk_threads_leave();
 
