@@ -782,12 +782,9 @@ static void read_file(const char *fn)
 	munmap(bf_map, st.st_size);
 }
 
-static void *read_file_thread(char *file)
+static void *read_file_thread(const char *fn)
 {
-	char *fname = strdup(file);
-
-	read_file(fname);
-	free(fname);
+	read_file(fn);
 
 	return 0;
 }
@@ -829,14 +826,17 @@ static void cb_file_chooser(GtkWidget *widget, gpointer data)
 
 		filename = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER
 				(file_chooser));
-		printf("Selected file = %s\n", filename);
-		g_thread_new("viewbrif", (GThreadFunc)read_file_thread,
-				filename);
-		if (filename)
-			set_window_title(data, filename);
-		g_free(filename);
-	}
+		if (filename) {
+			char fn[PATH_MAX];
 
+			snprintf(fn, PATH_MAX, "%s", filename);
+			printf("Selected file = %s\n", fn);
+			g_thread_new("viewbrif", (GThreadFunc)read_file_thread,
+					fn);
+			set_window_title(data, fn);
+			g_free(filename);
+		}
+	}
 	gtk_widget_destroy(file_chooser);
 }
 
