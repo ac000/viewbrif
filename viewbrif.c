@@ -32,7 +32,7 @@
 #include "brif_spec.h"
 
 /* Update for application version. */
-#define VERSION		"029"
+#define VERSION		"029.90"
 
 /*
  * DEBUG levels
@@ -50,6 +50,7 @@
 
 #define SPLIT_VIEW	0
 #define RAW_VIEW	1
+#define STATS_VIEW	2
 
 int line_no = 1;
 int line_pos = 0;
@@ -214,6 +215,17 @@ static gboolean find_text(GtkTextBuffer *buffer, const gchar *text,
 	}
 
 	return FALSE;
+}
+
+static gboolean cb_switch_tab(GtkNotebook *notebook, GtkWidget *page,
+			      guint page_num, GtkWidget *sbox)
+{
+	if (page_num == STATS_VIEW)
+		gtk_widget_hide(sbox);
+	else
+		gtk_widget_show(sbox);
+
+	return TRUE;
 }
 
 static gboolean cb_search(GtkWidget *search_button, gpointer data)
@@ -849,7 +861,7 @@ int main(int argc, char *argv[])
 	GtkWidget *stats_label;
 	GtkAccelGroup *accel_group;
 	PangoFontDescription *font_desc;
-	GtkWidget *hbox;
+	GtkWidget *sbox;
 	GtkWidget *search_entry;
 	GtkWidget *search_button;
 
@@ -1026,18 +1038,21 @@ int main(int argc, char *argv[])
 	pango_font_description_free(font_desc);
 
 	/* Horizontal box to hold the search entry and button */
-	hbox = gtk_hbox_new(FALSE, 0);
-	gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, FALSE, 0);
-	gtk_widget_show(hbox);
+	sbox = gtk_hbox_new(FALSE, 0);
+	gtk_box_pack_start(GTK_BOX(vbox), sbox, FALSE, FALSE, 0);
+	/* Signal to notify when to show/hide the search box */
+	g_signal_connect(G_OBJECT(notebook), "switch-page", G_CALLBACK(
+				cb_switch_tab), sbox);
+	gtk_widget_show(sbox);
 
 	search_entry = gtk_entry_new();
-	gtk_box_pack_start(GTK_BOX(hbox), search_entry, TRUE, TRUE, 0);
+	gtk_box_pack_start(GTK_BOX(sbox), search_entry, TRUE, TRUE, 0);
 	gtk_widget_show(search_entry);
 	g_signal_connect(G_OBJECT(search_entry), "activate",
 			G_CALLBACK(cb_search), search_entry);
 
 	search_button = gtk_button_new_with_label("Search");
-	gtk_box_pack_start(GTK_BOX(hbox), search_button, FALSE, FALSE, 0);
+	gtk_box_pack_start(GTK_BOX(sbox), search_button, FALSE, FALSE, 0);
 	gtk_widget_show(search_button);
 	g_signal_connect(G_OBJECT(search_button), "clicked",
 			G_CALLBACK(cb_search), search_entry);
