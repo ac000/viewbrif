@@ -136,45 +136,6 @@ static double add_dp(long amount)
 	return (double)amount / 100.0;
 }
 
-static char *str_pad(char *newstr, const char *str, int len,
-		     const char *padchar, int just)
-{
-	char *padstr;
-	int i;
-	int ppos;
-
-	if (just == PAD_LEFT || just == PAD_RIGHT) {
-		padstr = malloc((len - strlen(str)) + 1);
-		memset(padstr, '\0', (len - strlen(str)) + 1);
-
-		for (i = 0; i < (len - strlen(str)); i++)
-			strcat(padstr, padchar);
-
-		if (just == PAD_LEFT)
-			sprintf(newstr, "%s%s", padstr, str);
-		else if (just == PAD_RIGHT)
-			sprintf(newstr, "%s%s", str, padstr);
-	} else if (just == PAD_CENT) {
-		padstr = malloc(len + 1);
-		memset(padstr, '\0', len + 1);
-
-		for (i = 0; i < len; i++)
-			strcat(padstr, padchar);
-
-		ppos = (len - strlen(str)) / 2;
-		strncpy(padstr + ppos, str, strlen(str));
-		strcpy(newstr, padstr);
-	}
-
-	if (DEBUG > 3)
-		printf("Original string = %s, Pad string = %s, "
-				"Padded String = %s\n", str, padstr, newstr);
-
-	free(padstr);
-
-	return newstr;
-}
-
 static void create_tags(GtkTextBuffer *buffer)
 {
 	gtk_text_buffer_create_tag(buffer, "bold", "weight",
