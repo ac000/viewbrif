@@ -602,8 +602,8 @@ static void *read_file_thread(void *fn)
 	unsigned int sid;
 
 	/* Open file RO and apply some fadvise hints */
-	fd = open((char *)fn, O_RDONLY);
-        posix_fadvise(fd, 0, 0, POSIX_FADV_WILLNEED);
+	fd = open((char *)fn, O_RDONLY | O_CLOEXEC);
+	posix_fadvise(fd, 0, 0, POSIX_FADV_WILLNEED);
 
 	bf_map = mmap(0, size, PROT_READ, MAP_PRIVATE, fd, 0);
 	if (bf_map == MAP_FAILED) {
