@@ -53,6 +53,8 @@
 #define RAW_VIEW	1
 #define STATS_VIEW	2
 
+#define BRIF_LINE_LEN	300
+
 int line_no = 1;
 int line_pos = 0;
 
@@ -283,7 +285,7 @@ static void cb_new_instance(void)
 
 static void display_raw_line(const char *fline, const int line_array[][2])
 {
-	char data[301];
+	char data[BRIF_LINE_LEN + 1];
 	char ln[7];
 	int i = 0;
 	int fstart = 0;
@@ -301,7 +303,7 @@ static void display_raw_line(const char *fline, const int line_array[][2])
 	while (strncmp(fline + fstart, "\r\n", 2) != 0) {
 		fstart = line_array[i][0];
 		flen = line_array[i][1];
-		memset(data, '\0', 301);
+		memset(data, '\0', sizeof(data));
 		strncpy(data, fline + fstart, flen);
 
 		if (!color_flag) {
@@ -323,7 +325,7 @@ static void process_line(const char *fline, const int line_array[][2],
 	char pos[12];
 	char fnum[5];
 	char fname[31];
-	char data[301];
+	char data[BRIF_LINE_LEN + 1];
 	int i = 0;
 	int fstart = 0;
 	int flen = 0;
@@ -356,7 +358,7 @@ static void process_line(const char *fline, const int line_array[][2],
 		gtk_text_buffer_insert_with_tags_by_name(buffer, &iter, "] ",
 				-1, "blue_foreground", NULL);
 
-		memset(data, '\0', 301);
+		memset(data, '\0', sizeof(data));
 		strncpy(data, fline + fstart, flen);
 		strcat(data, "\n");
 		gtk_text_buffer_insert_with_tags_by_name(buffer, &iter, data,
@@ -377,10 +379,10 @@ static gboolean gather_stats(const char *line)
 {
 	int fstart = 0;
 	int flen = 0;
-	char data[301];
+	char data[BRIF_LINE_LEN + 1];
 	static char trans_type[2] = "\0";
 
-	memset(data, '\0', 301);
+	memset(data, '\0', sizeof(data));
 
 	if (strncmp(line + 1, "A", 1) == 0) {
 		brif_stats.trans++;
@@ -615,10 +617,10 @@ static void *read_file_thread(void *fn)
 
 	/* Gather the stats first */
 	while (offset < size) {
-		line = malloc(301);
-		memcpy(line, bf_map + offset, 300);
-		line[300] = '\0';
-		offset += 300;
+		line = malloc(BRIF_LINE_LEN + 1);
+		memcpy(line, bf_map + offset, BRIF_LINE_LEN);
+		line[BRIF_LINE_LEN] = '\0';
+		offset += BRIF_LINE_LEN;
 
 		/* See comment below */
 		if (!isprint((int)line[0])) {
@@ -635,10 +637,10 @@ static void *read_file_thread(void *fn)
 
 	offset = 0;
 	while (offset < size) {
-		line = malloc(301);
-		memcpy(line, bf_map + offset, 300);
-		line[300] = '\0';
-		offset += 300;
+		line = malloc(BRIF_LINE_LEN + 1);
+		memcpy(line, bf_map + offset, BRIF_LINE_LEN);
+		line[BRIF_LINE_LEN] = '\0';
+		offset += BRIF_LINE_LEN;
 		if (DEBUG > 2)
 			printf("%c\n", (int)line[0]);
 
@@ -749,9 +751,10 @@ static void read_file(const char *fn)
 	 * don't read it in. Instead display an error message to
 	 * the user.
 	 */
-	if ((st.st_size % 300) != 0) {
+	if ((st.st_size % BRIF_LINE_LEN) != 0) {
 		sprintf(emesg, "ERROR: Size (%ld) of file (%s) is not a "
-				"multiple of 300.", st.st_size, fn);
+				"multiple of %d.", st.st_size, fn,
+				BRIF_LINE_LEN);
 		printf("%s\n", emesg);
 		gtk_text_buffer_insert_with_tags_by_name(buffer, &iter, emesg,
 				-1, "bold", NULL);
