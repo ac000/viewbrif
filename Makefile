@@ -1,6 +1,6 @@
 CC=gcc
 CFLAGS=-Wall -std=c99 -O2 -g -D_FILE_OFFSET_BITS=64
-LIBS=`pkg-config --libs gtk+-2.0 gthread-2.0`
+LIBS=`pkg-config --libs gtk+-2.0` -pthread
 INCS=`pkg-config --cflags gtk+-2.0`
 
 viewbrif: viewbrif.c

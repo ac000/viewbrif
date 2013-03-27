@@ -24,6 +24,7 @@
 #include <monetary.h>
 #include <ctype.h>
 #include <stdbool.h>
+#include <pthread.h>
 
 #include <glib.h>
 #include <gdk/gdkkeysyms.h>
@@ -32,7 +33,7 @@
 #include "brif_spec.h"
 
 /* Update for application version. */
-#define VERSION		"031"
+#define VERSION		"031.90"
 
 /*
  * DEBUG levels
@@ -54,6 +55,9 @@
 
 int line_no = 1;
 int line_pos = 0;
+
+/* Array of source id's from g_idle_add_full() */
+static GArray *sid_array;
 
 GtkWidget *notebook;
 GtkWidget *text_view;
@@ -99,6 +103,15 @@ static void reset_stats(void)
 	brif_stats.sales_vat_amt   = 0;
 	brif_stats.credits_vat_amt = 0;
 	brif_stats.file_size	   = 0;
+}
+
+static gboolean free_sid_array(void)
+{
+	if (sid_array) {
+		g_array_free(sid_array, TRUE);
+		sid_array = NULL;
+	}
+	return FALSE;
 }
 
 /*
@@ -355,11 +368,8 @@ static void process_line(const char *fline, const int line_array[][2],
 	int flen = 0;
 	GtkTextBuffer *buffer;
 
-	gdk_threads_enter();
 	buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text_view));
 	gtk_text_buffer_get_end_iter(buffer, &iter);
-	gdk_flush();
-	gdk_threads_leave();
 
 	while (strncmp(fline + fstart, "\r\n", 2) != 0) {
 		fstart = line_array[i][0];
@@ -376,7 +386,6 @@ static void process_line(const char *fline, const int line_array[][2],
 		str_pad(fnum, fnum, 4, " ", PAD_RIGHT);
 		str_pad(fname, fname, 30, " ", PAD_RIGHT);
 
-		gdk_threads_enter();
 		gtk_text_buffer_insert_with_tags_by_name(buffer, &iter, pos,
 				-1, "red_foreground", NULL);
 		gtk_text_buffer_insert_with_tags_by_name(buffer, &iter, fnum,
@@ -391,9 +400,6 @@ static void process_line(const char *fline, const int line_array[][2],
 		strcat(data, "\n");
 		gtk_text_buffer_insert_with_tags_by_name(buffer, &iter, data,
 				-1, "orange_background", NULL);
-		gdk_flush();
-		gdk_threads_leave();
-
 		line_pos += flen;
 		i++;
 
@@ -401,13 +407,12 @@ static void process_line(const char *fline, const int line_array[][2],
 			printf("Line: %s\n", data);
 	}
 
-	gdk_threads_enter();
 	display_raw_line(fline, line_array);
-	gdk_flush();
-	gdk_threads_leave();
+	/* Allow the interface to be responsive */
+	gtk_main_iteration_do(FALSE);
 }
 
-static void gather_stats(const char *fline, const int line_array[][2])
+static gboolean gather_stats(const char *line)
 {
 	int fstart = 0;
 	int flen = 0;
@@ -416,37 +421,39 @@ static void gather_stats(const char *fline, const int line_array[][2])
 
 	memset(data, '\0', 301);
 
-	if (strncmp(fline + 1, "A", 1) == 0) {
+	if (strncmp(line + 1, "A", 1) == 0) {
 		brif_stats.trans++;
 
-		fstart = line_array[14][0];
-		flen = line_array[14][1];
-		strncpy(data, fline + fstart, flen);
+		fstart = mrl[14][0];
+		flen = mrl[14][1];
+		strncpy(data, line + fstart, flen);
 		brif_stats.amount += atoi(data);
 
-		if (strncmp(fline + 2, "S", 1) == 0) {
+		if (strncmp(line + 2, "S", 1) == 0) {
 			brif_stats.sales++;
 			brif_stats.sales_amt += atoi(data);
 			strcpy(trans_type, "S");
 		}
 
-		if (strncmp(fline + 2, "R", 1) == 0) {
+		if (strncmp(line + 2, "R", 1) == 0) {
 			brif_stats.credits++;
 			brif_stats.credits_amt += atoi(data);
 			strcpy(trans_type, "R");
 		}
-	} else if (strncmp(fline + 2, "P", 1) == 0) {
-		fstart = line_array[5][0];
-		flen = line_array[5][1];
-		strncpy(data, fline + fstart, flen);
+	} else if (strncmp(line + 2, "P", 1) == 0) {
+		fstart = pcl[5][0];
+		flen = pcl[5][1];
+		strncpy(data, line + fstart, flen);
 		if (strncmp(trans_type, "S", 1) == 0)
 			brif_stats.sales_vat_amt += atoi(data);
 		else if (strncmp(trans_type, "R", 1) == 0)
 			brif_stats.credits_vat_amt += atoi(data);
 	}
+
+	return FALSE;
 }
 
-static void display_stats(void)
+static gboolean display_stats(void)
 {
 	char *val;
 	char fn[31];
@@ -570,73 +577,180 @@ static void display_stats(void)
 	str_pad(fn, "File total (gross)", flen, " ", PAD_RIGHT);
 	gtk_text_buffer_insert(buffer_stats, &iter_stats, fn, -1);
 	gtk_text_buffer_insert(buffer_stats, &iter_stats, famount, -1);
+
+	return FALSE;
 }
 
-static void do_main_record(const char *fline)
+static gboolean do_main_record(const char *line)
 {
 	char hline[35];
 	GtkTextBuffer *buffer;
 
-	gdk_threads_enter();
 	sprintf(hline, "Line no: %d, Main Record\n", line_no++);
 	buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text_view));
 	gtk_text_buffer_get_end_iter(buffer, &iter);
 	gtk_text_buffer_insert_with_tags_by_name(buffer, &iter, hline, -1,
 			"green_foreground", NULL);
 
-	gdk_flush();
-	gdk_threads_leave();
+	process_line(line, mrl, mrn);
 
-	process_line(fline, mrl, mrn);
+	return FALSE;
 }
 
-static void do_purchasing_card(const char *fline)
+static gboolean do_purchasing_card(const char *line)
 {
 	char hline[35];
 	GtkTextBuffer *buffer;
 
-	gdk_threads_enter();
 	sprintf(hline, "Line no: %d, Purchasing Card\n", line_no++);
 	buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text_view));
 	gtk_text_buffer_get_end_iter(buffer, &iter);
 	gtk_text_buffer_insert_with_tags_by_name(buffer, &iter, hline, -1,
 			"green_foreground", NULL);
 
-	gdk_flush();
-	gdk_threads_leave();
+	process_line(line, pcl, pcln);
 
-	process_line(fline, pcl, pcln);
+	return FALSE;
 }
 
-static void do_purchasing_card_item(const char *fline)
+static gboolean do_purchasing_card_item(const char *line)
 {
 	char hline[35];
 	GtkTextBuffer *buffer;
 
-	gdk_threads_enter();
 	sprintf(hline, "Line no: %d, Purchasing Card Item\n", line_no++);
 	buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text_view));
 	gtk_text_buffer_get_end_iter(buffer, &iter);
 	gtk_text_buffer_insert_with_tags_by_name(buffer, &iter, hline, -1,
 			"green_foreground", NULL);
 
-	gdk_flush();
-	gdk_threads_leave();
+	process_line(line, pcil, pciln);
 
-	process_line(fline, pcil, pciln);
+	return FALSE;
+}
+
+static void *read_file_thread(void *fn)
+{
+	int fd;
+	off_t offset = 0;
+	off_t size = brif_stats.file_size;
+	char *bf_map;
+	char *line;
+	unsigned int sid;
+
+	/* Open file RO and apply some fadvise hints */
+	fd = open((char *)fn, O_RDONLY);
+        posix_fadvise(fd, 0, 0, POSIX_FADV_WILLNEED);
+
+	bf_map = mmap(0, size, PROT_READ, MAP_PRIVATE, fd, 0);
+	if (bf_map == MAP_FAILED) {
+		printf("mmap() failed.\n");
+		close(fd);
+		_exit(EXIT_FAILURE);
+	}
+	close(fd);
+
+	sid_array = g_array_new(TRUE, FALSE, sizeof(guint));
+
+	/* Gather the stats first */
+	while (offset < size) {
+		line = malloc(301);
+		memcpy(line, bf_map + offset, 300);
+		line[300] = '\0';
+		offset += 300;
+
+		/* See comment below */
+		if (!isprint((int)line[0])) {
+			free(line);
+			continue;
+		}
+
+		sid = g_idle_add_full(G_PRIORITY_DEFAULT_IDLE,
+				(GSourceFunc)gather_stats, (char *)line, free);
+		g_array_append_val(sid_array, sid);
+	}
+	sid = g_idle_add((GSourceFunc)display_stats, NULL);
+	g_array_append_val(sid_array, sid);
+
+	offset = 0;
+	while (offset < size) {
+		line = malloc(301);
+		memcpy(line, bf_map + offset, 300);
+		line[300] = '\0';
+		offset += 300;
+		if (DEBUG > 2)
+			printf("%c\n", (int)line[0]);
+
+		/*
+		 * Catch non-printable characters, probably ctrl-z that
+		 * has been added to the end of the file by pceft
+		 */
+		if (!isprint((int)line[0])) {
+			free(line);
+			continue;
+		}
+
+		if (strncmp(line + 1, "A", 1) == 0) {
+			if (DEBUG > 1)
+				printf("Doing main record line.\n");
+
+			sid = g_idle_add_full(G_PRIORITY_DEFAULT_IDLE,
+					(GSourceFunc)do_main_record,
+					(char *)line, free);
+			g_array_append_val(sid_array, sid);
+		} else if (strncmp(line + 2, "P", 1) == 0) {
+			if (DEBUG > 1)
+				printf("Doing purchasing card line.\n");
+
+			sid = g_idle_add_full(G_PRIORITY_DEFAULT_IDLE,
+					(GSourceFunc)do_purchasing_card,
+					(char *)line, free);
+			g_array_append_val(sid_array, sid);
+		} else if (strncmp(line + 2, "I", 1) == 0) {
+			if (DEBUG > 1)
+				printf("Doing purchasing card item line.\n");
+
+			sid = g_idle_add_full(G_PRIORITY_DEFAULT_IDLE,
+					(GSourceFunc)do_purchasing_card_item,
+					(char *)line, free);
+			g_array_append_val(sid_array, sid);
+		}
+
+		if (DEBUG > 1)
+			printf("Line length = %d\n", line_pos);
+		line_pos = 0;
+	}
+	munmap(bf_map, size);
+	g_idle_add((GSourceFunc)free_sid_array, NULL);
+
+	pthread_exit(NULL);
 }
 
 static void read_file(const char *fn)
 {
-	char fline[300];
-	char *bf_map;
 	char emesg[255];
-	int fd;
-	off_t offset = 0;
 	struct stat st;
 	GtkTextBuffer *buffer;
 	GtkTextBuffer *buffer_raw;
 	GtkTextBuffer *buffer_stats;
+	pthread_t thr;
+	pthread_attr_t attr;
+
+	/* If there is a file loading in progress, we want to stop it */
+	if (sid_array) {
+		int i = 0;
+		unsigned int sid;
+
+		for (;;) {
+			sid = g_array_index(sid_array, guint, i);
+			if (sid == 0)
+				break;
+			g_source_remove(sid);
+			i++;
+		}
+		g_array_free(sid_array, TRUE);
+		sid_array = NULL;
+	}
 
 	/* Reset global counters and clear the text view */
 	line_no = 1;
@@ -646,8 +760,6 @@ static void read_file(const char *fn)
 	/* Get file size */
 	stat(fn, &st);
 	brif_stats.file_size = st.st_size;
-
-	gdk_threads_enter();
 
 	/* Reset the text views */
 	gtk_text_view_set_buffer(GTK_TEXT_VIEW(text_view), NULL);
@@ -691,95 +803,16 @@ static void read_file(const char *fn)
 		return;
 	}
 
-	/* Open file RO and apply some fadvise hints */
-	fd = open(fn, O_RDONLY);
-	posix_fadvise(fd, 0, 0, POSIX_FADV_WILLNEED);
-
 	gtk_text_buffer_insert_with_tags_by_name(buffer, &iter,
 			"Displaying file: ", -1, "bold", NULL);
 	gtk_text_buffer_insert_with_tags_by_name(buffer, &iter, fn, -1,
 			"blue_foreground", "bold", NULL);
 	gtk_text_buffer_insert(buffer, &iter, "\n\n", -1);
 
-	gdk_flush();
-	gdk_threads_leave();
-
-	bf_map = mmap(0, st.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
-	if (bf_map == MAP_FAILED) {
-		printf("mmap() failed.\n");
-		close(fd);
-		exit(EXIT_FAILURE);
-	}
-
-	close(fd);
-
-	/* Gather the stats first */
-	while (offset < st.st_size) {
-		memcpy(fline, bf_map + offset, 300);
-		offset += 300;
-
-		/* See comment below */
-		if (!isprint((int)fline[0]))
-			continue;
-
-		if (strncmp(fline + 1, "A", 1) == 0)
-			gather_stats(fline, mrl);
-		else if (strncmp(fline + 2, "P", 1) == 0)
-			gather_stats(fline, pcl);
-		else if (strncmp(fline + 2, "I", 1) == 0)
-			gather_stats(fline, pcil);
-	}
-
-	gdk_threads_enter();
-	display_stats();
-	gdk_flush();
-	gdk_threads_leave();
-
-	offset = 0;
-	while (offset < st.st_size) {
-		memcpy(fline, bf_map + offset, 300);
-		offset += 300;
-		if (DEBUG > 2)
-			printf("%c\n", (int)fline[0]);
-
-		/*
-		 * Catch non-printable characters, probably ctrl-z that
-		 * has been added to the end of the file by pceft
-		 */
-		if (!isprint((int)fline[0]))
-			continue;
-
-		if (strncmp(fline + 1, "A", 1) == 0) {
-			if (DEBUG > 1)
-				printf("Doing main record line.\n");
-
-			do_main_record(fline);
-		} else if (strncmp(fline + 2, "P", 1) == 0) {
-			if (DEBUG > 1)
-				printf("Doing purchasing card line.\n");
-
-			do_purchasing_card(fline);
-		} else if (strncmp(fline + 2, "I", 1) == 0) {
-			if (DEBUG > 1)
-				printf("Doing purchasing card item line.\n");
-
-			do_purchasing_card_item(fline);
-		}
-
-		if (DEBUG > 1)
-			printf("Line length = %d\n", line_pos);
-
-		line_pos = 0;
-	}
-
-	munmap(bf_map, st.st_size);
-}
-
-static void *read_file_thread(const char *fn)
-{
-	read_file(fn);
-
-	return 0;
+	pthread_attr_init(&attr);
+	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+	pthread_create(&thr, &attr, &read_file_thread, (void *)fn);
+	pthread_attr_destroy(&attr);
 }
 
 static void cb_file_chooser(GtkWidget *widget, gpointer data)
@@ -823,11 +856,10 @@ static void cb_file_chooser(GtkWidget *widget, gpointer data)
 			char fn[PATH_MAX];
 
 			snprintf(fn, PATH_MAX, "%s", filename);
-			printf("Selected file = %s\n", fn);
-			g_thread_new("viewbrif", (GThreadFunc)read_file_thread,
-					fn);
-			set_window_title(data, fn);
 			g_free(filename);
+			set_window_title(data, fn);
+			printf("Selected file = %s\n", fn);
+			read_file(fn);
 		}
 	}
 	gtk_widget_destroy(file_chooser);
@@ -858,8 +890,6 @@ int main(int argc, char *argv[])
 	GtkWidget *search_entry;
 	GtkWidget *search_button;
 
-	gdk_threads_init();
-	gdk_threads_enter();
 	gtk_init(&argc, &argv);
 
 	accel_group = gtk_accel_group_new();
@@ -1054,13 +1084,11 @@ int main(int argc, char *argv[])
 
 	/* If we got a filename as an argument, open that up in the viewer. */
 	if (argc > 1) {
-		g_thread_new("viewbrif", (GThreadFunc)read_file_thread,
-				argv[1]);
+		read_file(argv[1]);
 		set_window_title(window, argv[1]);
 	}
 
 	gtk_main();
-	gdk_threads_leave();
 
 	exit(EXIT_SUCCESS);
 }
