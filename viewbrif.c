@@ -33,7 +33,7 @@
 #include "brif_spec.h"
 
 /* Update for application version. */
-#define VERSION		"032"
+#define VERSION		"032.90"
 
 /*
  * DEBUG levels
@@ -80,32 +80,7 @@ struct stats {
 	long sales_vat_amt;
 	long credits_vat_amt;
 	off_t file_size;
-};
-
-struct stats brif_stats = {
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0
-};
-
-static void reset_stats(void)
-{
-	brif_stats.trans	   = 0;
-	brif_stats.credits	   = 0;
-	brif_stats.sales	   = 0;
-	brif_stats.amount	   = 0;
-	brif_stats.sales_amt	   = 0;
-	brif_stats.credits_amt	   = 0;
-	brif_stats.sales_vat_amt   = 0;
-	brif_stats.credits_vat_amt = 0;
-	brif_stats.file_size	   = 0;
-}
+} brif_stats;
 
 static gboolean free_sid_array(void)
 {
@@ -718,7 +693,7 @@ static void read_file(const char *fn)
 	/* Reset global counters and clear the text view */
 	line_no = 1;
 	line_pos = 0;
-	reset_stats();
+	memset(&brif_stats, 0, sizeof(brif_stats));
 
 	/* Get file size */
 	stat(fn, &st);
