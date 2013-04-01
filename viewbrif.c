@@ -751,6 +751,7 @@ static void read_file(const char *fn)
 	pthread_attr_init(&attr);
 	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
 	pthread_create(&thr, &attr, &read_file_thread, (void *)fn);
+	pthread_setname_np(thr, "read-brif-file");
 	pthread_attr_destroy(&attr);
 }
 
