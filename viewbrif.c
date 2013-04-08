@@ -80,7 +80,8 @@ struct stats {
 	long sales_vat_amt;
 	long credits_vat_amt;
 	off_t file_size;
-} brif_stats;
+};
+static struct stats brif_stats;
 
 static gboolean free_sid_array(void)
 {
