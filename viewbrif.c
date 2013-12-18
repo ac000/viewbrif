@@ -314,16 +314,12 @@ static void process_line(const char *fline, const int line_array[][2],
 		fstart = line_array[i][0];
 		flen = line_array[i][1];
 
-		sprintf(pos, "(%3d, %3d)", fstart + 1, flen);
-		sprintf(fnum, "F%d", i + 1);
+		sprintf(pos, "(%3d, %3d) ", fstart + 1, flen);
+		sprintf(fnum, "F%-3d", i + 1);
 
 		if (DEBUG > 3)
 			printf("Field name = %s\n", field_headers[i]);
-
-		sprintf(fname, "[ %s", field_headers[i]);
-		sprintf(pos, "%-11s", pos);
-		sprintf(fnum, "%-4s", fnum);
-		sprintf(fname, "%-30s", fname);
+		sprintf(fname, "[ %-28s", field_headers[i]);
 
 		gtk_text_buffer_insert_with_tags_by_name(buffer, &iter, pos,
 				-1, "red_foreground", NULL);
