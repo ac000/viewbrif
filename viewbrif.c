@@ -45,10 +45,6 @@
  */
 #define DEBUG		0
 
-#define PAD_LEFT	0
-#define PAD_RIGHT	1
-#define PAD_CENT	2
-
 #define SPLIT_VIEW	0
 #define RAW_VIEW	1
 #define STATS_VIEW	2
