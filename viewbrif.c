@@ -3,7 +3,7 @@
  *
  * A GUI BRIF file viewer
  *
- * Copyright (C) 2006-2013	Andrew Clayton <andrew@pccl.info>
+ * Copyright (C) 2006-2014	Andrew Clayton <andrew@digital-domain.net>
  *
  * Released under the General Public License (GPL) version 2.
  * See COPYING
@@ -33,7 +33,7 @@
 #include "brif_spec.h"
 
 /* Update for application version. */
-#define VERSION		"032.90"
+#define VERSION		"032.91"
 
 /*
  * DEBUG levels
