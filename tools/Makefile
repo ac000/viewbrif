@@ -1,8 +1,13 @@
+CC=gcc
+CFLAGS=-Wall -std=c99 -O2 -g
+
+all: semi_brif bv2csv
+
 semi_brif: semi_brif.c
-	gcc -Wall -g -O2 -std=c99 -o semi_brif semi_brif.c
+	$(CC) $(CFLAGS) -o semi_brif semi_brif.c
 
 bv2csv: bv2csv.c
-	gcc -Wall -g -O2 -std=c99 -o bv2csv bv2csv.c -lm
+	$(CC) $(CFLAGS)  -o bv2csv bv2csv.c -lm
 
 clean:
 	rm -f bv2csv semi_brif
