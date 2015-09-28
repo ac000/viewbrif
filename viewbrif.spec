@@ -1,12 +1,11 @@
 Summary:	GUI BRIF File Viewer
 Name:		viewbrif
-Version:	032
-Release:	1.pccl%{?dist}
+Version:	033
+Release:	1{?dist}
 Group:		Development/Tools
 License:	GPLv2
-Vendor:		PCCL
-Packager:	Andrew Clayton <andrew@pccl.info>
-Url:		http://wiki.systems.pccl.info/mediawiki/index.php/ViewBRIF
+Packager:	Andrew Clayton <andrew@digital-domain.net>
+Url:		https://github.com/ac000/viewbrif
 Source0:	viewbrif-%{version}.tar
 BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-root
 
@@ -40,6 +39,10 @@ rm -rf $RPM_BUILD_ROOT
 /usr/share/pixmaps/viewbrif.png
 
 %changelog
+
+* Mon Sep 28 2015 Andrew Clayton <andrew@digital-domain,net> - 033-1
+- New version
+- Mainly enables building with hardened compiler/linker flags.
 
 * Thu Mar 28 2013 Andrew Clayton <andrew@pccl.info> - 032-1.pccl
 - New version
