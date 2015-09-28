@@ -386,7 +386,7 @@ static gboolean gather_stats(const char *line)
 
 static gboolean display_stats(void)
 {
-	char *val;
+	char val[32];
 	char fn[31];
 	char famount[31];
 	char samount[31];
@@ -404,32 +404,23 @@ static gboolean display_stats(void)
 	gtk_text_buffer_get_end_iter(buffer_stats, &iter_stats);
 
 	/* File Size */
-	val = malloc(sizeof(brif_stats.file_size) + 1);
-	memset(val, '\0', sizeof(brif_stats.file_size) + 1);
-	sprintf(val, "%ld", brif_stats.file_size);
+	snprintf(val, sizeof(val), "%ld", brif_stats.file_size);
 	sprintf(fn, fmt, "File size");
 	gtk_text_buffer_insert(buffer_stats, &iter_stats, fn, -1);
 	gtk_text_buffer_insert(buffer_stats, &iter_stats, val, -1);
-	free(val);
 	gtk_text_buffer_insert(buffer_stats, &iter_stats, " bytes\n\n", -1);
 
 	/* Number of transactions */
-	val = malloc(sizeof(brif_stats.trans) + 2);
-	memset(val, '\0', sizeof(brif_stats.trans) + 2);
-	sprintf(val, "%d\n\n", brif_stats.trans);
+	snprintf(val, sizeof(val), "%d\n\n", brif_stats.trans);
 	sprintf(fn, fmt, "Number of transactions");
 	gtk_text_buffer_insert(buffer_stats, &iter_stats, fn, -1);
 	gtk_text_buffer_insert(buffer_stats, &iter_stats, val, -1);
-	free(val);
 
 	/* Number of sales */
-	val = malloc(sizeof(brif_stats.sales) + 2);
-	memset(val, '\0', sizeof(brif_stats.sales) + 2);
-	sprintf(val, "%d\n", brif_stats.sales);
+	snprintf(val, sizeof(val), "%d\n", brif_stats.sales);
 	sprintf(fn, fmt, "                 Sales");
 	gtk_text_buffer_insert(buffer_stats, &iter_stats, fn, -1);
 	gtk_text_buffer_insert(buffer_stats, &iter_stats, val, -1);
-	free(val);
 	/* Total of sales (net) */
 	samnt = add_dp(brif_stats.sales_amt - brif_stats.sales_vat_amt);
 	strfmon(samount, sizeof(samount), " %!12n\n", samnt);
@@ -444,13 +435,10 @@ static gboolean display_stats(void)
 	gtk_text_buffer_insert(buffer_stats, &iter_stats, samount, -1);
 
 	/* Number of credits */
-	val = malloc(sizeof(brif_stats.credits) + 3);
-	memset(val, '\0', sizeof(brif_stats.credits) + 3);
-	sprintf(val, "%d\n", brif_stats.credits);
+	snprintf(val, sizeof(val), "%d\n", brif_stats.credits);
 	sprintf(fn, fmt, "               Credits");
 	gtk_text_buffer_insert(buffer_stats, &iter_stats, fn, -1);
 	gtk_text_buffer_insert(buffer_stats, &iter_stats, val, -1);
-	free(val);
 	/* Total of credits (net) */
 	camnt = add_dp(brif_stats.credits_amt - brif_stats.credits_vat_amt);
 	strfmon(camount, sizeof(camount), " %!12n\n", camnt);
