@@ -514,10 +514,11 @@ static gboolean display_stats(void)
 
 static gboolean do_main_record(const char *line)
 {
-	char hline[35];
+	char hline[64];
 	GtkTextBuffer *buffer;
 
-	sprintf(hline, "Line no: %d, Main Record\n", line_no++);
+	snprintf(hline, sizeof(hline), "Line no: %d, Main Record\n",
+			line_no++);
 	buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text_view));
 	gtk_text_buffer_get_end_iter(buffer, &iter);
 	gtk_text_buffer_insert_with_tags_by_name(buffer, &iter, hline, -1,
@@ -530,10 +531,11 @@ static gboolean do_main_record(const char *line)
 
 static gboolean do_purchasing_card(const char *line)
 {
-	char hline[35];
+	char hline[64];
 	GtkTextBuffer *buffer;
 
-	sprintf(hline, "Line no: %d, Purchasing Card\n", line_no++);
+	snprintf(hline, sizeof(hline), "Line no: %d, Purchasing Card\n",
+			line_no++);
 	buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text_view));
 	gtk_text_buffer_get_end_iter(buffer, &iter);
 	gtk_text_buffer_insert_with_tags_by_name(buffer, &iter, hline, -1,
