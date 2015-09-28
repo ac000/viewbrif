@@ -3,7 +3,7 @@
  *
  * A GUI BRIF file viewer
  *
- * Copyright (C) 2006-2014	Andrew Clayton <andrew@digital-domain.net>
+ * Copyright (C) 2006-2015	Andrew Clayton <andrew@digital-domain.net>
  *
  * Released under the General Public License (GPL) version 2.
  * See COPYING
@@ -546,10 +546,11 @@ static gboolean do_purchasing_card(const char *line)
 
 static gboolean do_purchasing_card_item(const char *line)
 {
-	char hline[35];
+	char hline[64];
 	GtkTextBuffer *buffer;
 
-	sprintf(hline, "Line no: %d, Purchasing Card Item\n", line_no++);
+	snprintf(hline, sizeof(hline), "Line no: %d, Purchasing Card Item\n",
+			line_no++);
 	buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text_view));
 	gtk_text_buffer_get_end_iter(buffer, &iter);
 	gtk_text_buffer_insert_with_tags_by_name(buffer, &iter, hline, -1,
