@@ -750,9 +750,9 @@ static void cb_file_chooser(GtkWidget *widget, gpointer data)
 	file_chooser = gtk_file_chooser_dialog_new("File selection",
 			NULL,
 			GTK_FILE_CHOOSER_ACTION_OPEN,
-			GTK_STOCK_CANCEL,
+			"_Cancel",
 			GTK_RESPONSE_CANCEL,
-			GTK_STOCK_OPEN,
+			"_Open",
 			GTK_RESPONSE_ACCEPT,
 			NULL);
 
