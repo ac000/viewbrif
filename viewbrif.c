@@ -3,7 +3,8 @@
  *
  * A GUI BRIF file viewer
  *
- * Copyright (C) 2006-2015	Andrew Clayton <andrew@digital-domain.net>
+ * Copyright (C) 2006-2015, 2022	Andrew Clayton
+ *					<andrew@digital-domain.net>
  *
  * Released under the General Public License (GPL) version 2.
  * See COPYING
@@ -258,7 +259,7 @@ static void cb_new_instance(void)
 static void display_raw_line(const char *fline, const int line_array[][2])
 {
 	char data[BRIF_LINE_LEN + 1];
-	char ln[7];
+	char ln[12];
 	int i = 0;
 	int fstart = 0;
 	int flen = 0;
@@ -268,7 +269,7 @@ static void display_raw_line(const char *fline, const int line_array[][2])
 	buffer_raw = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text_view_raw));
 	gtk_text_buffer_get_end_iter(buffer_raw, &iter_raw);
 
-	sprintf(ln, "%-6d", line_no - 1);
+	snprintf(ln, sizeof(ln), "%-6d", line_no - 1);
 	gtk_text_buffer_insert_with_tags_by_name(buffer_raw, &iter_raw, ln, -1,
 			"lightblue_background", NULL);
 
@@ -294,8 +295,8 @@ static void display_raw_line(const char *fline, const int line_array[][2])
 static void process_line(const char *fline, const int line_array[][2],
 			 const char *field_headers[])
 {
-	char pos[12];
-	char fnum[5];
+	char pos[20];
+	char fnum[12];
 	char fname[31];
 	char data[BRIF_LINE_LEN + 1];
 	int i = 0;
@@ -310,8 +311,8 @@ static void process_line(const char *fline, const int line_array[][2],
 		fstart = line_array[i][0];
 		flen = line_array[i][1];
 
-		sprintf(pos, "(%3d, %3d) ", fstart + 1, flen);
-		sprintf(fnum, "F%-3d", i + 1);
+		snprintf(pos, sizeof(pos), "(%3d, %3d) ", fstart + 1, flen);
+		snprintf(fnum, sizeof(fnum), "F%-3d", i + 1);
 
 		if (DEBUG > 3)
 			printf("Field name = %s\n", field_headers[i]);
