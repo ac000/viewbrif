@@ -828,7 +828,7 @@ int main(int argc, char *argv[])
 	gtk_widget_set_size_request(window, 700, 800);
 
 	/* vbox to hold stuff */
-	vbox = gtk_vbox_new(FALSE, 0);
+	vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
 	gtk_widget_show(vbox);
 	gtk_container_add(GTK_CONTAINER(window), vbox);
 
@@ -986,7 +986,7 @@ int main(int argc, char *argv[])
 	pango_font_description_free(font_desc);
 
 	/* Horizontal box to hold the search entry and button */
-	sbox = gtk_hbox_new(FALSE, 0);
+	sbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
 	gtk_box_pack_start(GTK_BOX(vbox), sbox, FALSE, FALSE, 0);
 	/* Signal to notify when to show/hide the search box */
 	g_signal_connect(G_OBJECT(notebook), "switch-page", G_CALLBACK(
