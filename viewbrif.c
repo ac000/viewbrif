@@ -810,7 +810,7 @@ int main(int argc, char *argv[])
 	GtkWidget *raw_label;
 	GtkWidget *stats_label;
 	GtkAccelGroup *accel_group;
-	PangoFontDescription *font_desc;
+	GtkStyleProvider *provider;
 	GtkWidget *sbox;
 	GtkWidget *search_entry;
 	GtkWidget *search_button;
@@ -979,11 +979,15 @@ int main(int argc, char *argv[])
 			G_CALLBACK(cb_about_window), NULL);
 
 	/* Change default font throughout the text views */
-	font_desc = pango_font_description_from_string("Monospace");
-	gtk_widget_modify_font(text_view, font_desc);
-	gtk_widget_modify_font(text_view_raw, font_desc);
-	gtk_widget_modify_font(text_view_stats, font_desc);
-	pango_font_description_free(font_desc);
+	provider = GTK_STYLE_PROVIDER(gtk_css_provider_new());
+	gtk_css_provider_load_from_data(GTK_CSS_PROVIDER(provider),
+					"* { font-family: Monospace; }",
+					-1, NULL);
+	gtk_style_context_add_provider(gtk_widget_get_style_context(text_view),
+				       provider, G_MAXUINT);
+	gtk_style_context_add_provider(gtk_widget_get_style_context(text_view_raw),
+				       provider, G_MAXUINT);
+	gtk_style_context_add_provider(gtk_widget_get_style_context(text_view_stats),				       provider, G_MAXUINT);
 
 	/* Horizontal box to hold the search entry and button */
 	sbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
