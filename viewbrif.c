@@ -846,16 +846,20 @@ int main(int argc, char *argv[])
 	gtk_menu_item_set_submenu(GTK_MENU_ITEM(filemenu), filemenu_menu);
 
 	/* Create the new menu item */
-	filemenu_new_instance = gtk_image_menu_item_new_from_stock("gtk-new",
-			accel_group);
+	filemenu_new_instance = gtk_menu_item_new_with_mnemonic("_New");
 	gtk_widget_show(filemenu_new_instance);
 	gtk_container_add(GTK_CONTAINER(filemenu_menu), filemenu_new_instance);
+	gtk_widget_add_accelerator(filemenu_new_instance, "activate",
+				   accel_group, GDK_KEY_n, GDK_CONTROL_MASK,
+				   GTK_ACCEL_VISIBLE);
 
 	/* Create the open menu item */
-	filemenu_open = gtk_image_menu_item_new_from_stock("gtk-open",
-			accel_group);
+	filemenu_open = gtk_menu_item_new_with_mnemonic("_Open");
 	gtk_widget_show(filemenu_open);
 	gtk_container_add(GTK_CONTAINER(filemenu_menu), filemenu_open);
+	gtk_widget_add_accelerator(filemenu_open, "activate", accel_group,
+				   GDK_KEY_o, GDK_CONTROL_MASK,
+				   GTK_ACCEL_VISIBLE);
 
 	separator_menu_item = gtk_separator_menu_item_new();
 	gtk_widget_show(separator_menu_item);
@@ -863,10 +867,12 @@ int main(int argc, char *argv[])
 	gtk_widget_set_sensitive(separator_menu_item, FALSE);
 
 	/* Create the quit menu item */
-	filemenu_quit = gtk_image_menu_item_new_from_stock("gtk-quit",
-			accel_group);
+	filemenu_quit = gtk_menu_item_new_with_mnemonic("_Quit");
 	gtk_widget_show(filemenu_quit);
 	gtk_container_add(GTK_CONTAINER(filemenu_menu), filemenu_quit);
+	gtk_widget_add_accelerator(filemenu_quit, "activate", accel_group,
+				   GDK_KEY_q, GDK_CONTROL_MASK,
+				   GTK_ACCEL_VISIBLE);
 
 	/* Create the help menu */
 	helpmenu = gtk_menu_item_new_with_mnemonic(("_Help"));
@@ -877,8 +883,7 @@ int main(int argc, char *argv[])
 	gtk_menu_item_set_submenu(GTK_MENU_ITEM(helpmenu), helpmenu_menu);
 
 	/* Create the about menu item */
-	helpmenu_about = gtk_image_menu_item_new_from_stock("gtk-about",
-			accel_group);
+	helpmenu_about = gtk_menu_item_new_with_mnemonic("_About");
 	gtk_widget_show(helpmenu_about);
 	gtk_container_add(GTK_CONTAINER(helpmenu_menu), helpmenu_about);
 
